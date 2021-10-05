@@ -25,14 +25,7 @@ from bot_admin.models import *
 import os
 import logging
 from . import is_valid_group, is_valid_name
-from dotenv import load_dotenv
 
-
-load_dotenv()
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
-    level=logging.INFO
-)
 
 EDIT_NAME_KEYBOARD_VALUE = 'Edit name'
 EDIT_GROUP_KEYBOARD_VALUE = 'Edit group'
@@ -376,14 +369,31 @@ def show_profile_info(update: Update, context: CallbackContext):
             text='Student not found. Please sign up by /signup command.',
             reply_markup=main_markup
         )
+        
+
+def unknown_command(update: Update, context: CallbackContext):
+    update.message.reply_text(text='Unknown command')
+
 
 def receive_answer(update: Update, context: CallbackContext):
     
     # update.poll.options[0].voter_count
     
+    poll: TelegramPoll = TelegramPoll.objects.get(
+        telegram_poll_id=update.poll_answer.poll_id
+    )
+    
+    user_answers = set(update.poll_answer.option_ids)
+    correct_answers = set(poll.correct_options)
+    
+    poll.is_student_passed = (user_answers == correct_answers)
+    poll.save()
+    
     logging.info(update.poll_answer.user.username + 
-                 ' answered ' + str(update.poll_answer.option_ids) + 
-                 'to poll (id: ' + str(update.poll_answer.poll_id) + ')')
+                 ' answered ' + str(user_answers) + 
+                 ' to poll (id: ' + str(update.poll_answer.poll_id) + ') ' + 
+                 'correct: ' + str(correct_answers) + ' passed: '
+                 + str(user_answers == correct_answers))
     
     # if context.bot_data[poll_id]["answers"] == 3:
     #     context.bot.stop_poll(
@@ -397,11 +407,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         updater = Updater(os.getenv('TOKEN'), use_context=True)
         dispatcher = updater.dispatcher
-        
-        # dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, quiz))
-        # dispatcher.add_handler(CommandHandler('count', count_messages))
-        
-        # dispatcher.add_handler(PollAnswerHandler(receive_answer))
         
         edit_conversation_handler = ConversationHandler(
             entry_points=[CommandHandler('edit_profile', edit_profile)],
@@ -441,6 +446,8 @@ class Command(BaseCommand):
         dispatcher.add_handler(signup_conversation_handler)
         dispatcher.add_handler(CommandHandler('help', help))
         dispatcher.add_handler(CommandHandler('show_profile', show_profile_info))
+        dispatcher.add_handler(PollAnswerHandler(receive_answer))
+        dispatcher.add_handler(MessageHandler(Filters.text, unknown_command))
         
         updater.start_polling()
         updater.idle()

@@ -1,6 +1,14 @@
 import logging
 import re
 from re import Match
+from dotenv import load_dotenv
+
+
+load_dotenv()
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+    level=logging.INFO
+)
 
 
 def is_valid_name(name: str) -> bool:

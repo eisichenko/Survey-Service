@@ -37,7 +37,7 @@ class Student(models.Model):
         return f'Student({self.telegram_username}, group: {self.group})'
     
 
-class Message(models.Model):
+class TelegramMessage(models.Model):
     student = models.ForeignKey(
         to='bot_admin.Student',
         verbose_name='Student',
@@ -45,10 +45,20 @@ class Message(models.Model):
         null=False
     )
     
-    telegram_message_id = models.PositiveIntegerField(
+    telegram_message_id = models.PositiveBigIntegerField(
         null=False,
         verbose_name='Telegram message ID',
         unique=True
+    )
+    
+    text = models.TextField(
+        null=False,
+        verbose_name='Message text',
+    )
+    
+    message_group_id = models.TextField(
+        null=False,
+        verbose_name='Message group ID'
     )
     
     created_at = models.DateTimeField(
@@ -60,5 +70,57 @@ class Message(models.Model):
         return f'Message {self.pk} to {self.student}'
     
     class Meta:
-        verbose_name = 'Message'
+        verbose_name = 'Telegram Message'
+    
+
+class TelegramPoll(models.Model):
+    student = models.ForeignKey(
+        to='bot_admin.Student',
+        verbose_name='Student',
+        on_delete=PROTECT,
+        null=False
+    )
+    
+    telegram_message_id = models.PositiveBigIntegerField(
+        null=False,
+        verbose_name='Telegram message ID',
+        unique=True
+    )
+    
+    telegram_poll_id = models.TextField(
+        null=False,
+        verbose_name='Telegram poll ID',
+        unique=True
+    )
+    
+    poll_group_id = models.PositiveBigIntegerField(
+        null=False,
+        verbose_name='Poll group id'
+    )
+    
+    question = models.TextField(
+        null=False,
+        verbose_name='Poll question'
+    )
+    
+    created_at = models.DateTimeField(
+        verbose_name='Time',
+        auto_now_add=True
+    )
+    
+    correct_options = models.JSONField(
+        verbose_name='Correct options',
+        null=False
+    )
+    
+    is_student_passed = models.BooleanField(
+        verbose_name='Is student passed',
+        default=False
+    )
+    
+    def __str__(self):
+        return f'Poll {self.pk} to {self.student}'
+    
+    class Meta:
+        verbose_name = 'Telegram Poll'
     
