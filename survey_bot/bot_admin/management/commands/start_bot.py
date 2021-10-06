@@ -1,15 +1,5 @@
-from threading import current_thread
-from typing import Match
 from django.core.management.base import BaseCommand
-from telegram import (
-    Bot, 
-    Update, 
-    Poll,
-    KeyboardButton, 
-    ReplyKeyboardMarkup,
-    ParseMode,
-)
-import telegram
+from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
     CallbackContext, 
     Filters, 
@@ -57,90 +47,6 @@ GET_TYPED_GROUP_ACTION = 2
 
 REAL_NAME_DATA = 'real_name'
 GROUP_DATA = 'group'
-
-
-# @log_errors
-# def do_echo(update: Update, context: CallbackContext):
-#     chat_id = update.message.chat_id
-#     text = update.message.text
-    
-#     p, just_created = Profile.objects.get_or_create(
-#         external_id=chat_id,
-#         defaults={
-#             'username': update.message.from_user.username
-#         }
-#     )
-    
-#     msg = Message(
-#         profile=p,
-#         text=text
-#     )
-#     msg.save()
-    
-#     button = [[KeyboardButton('Press Me!', request_poll=KeyboardButtonPollType())]]
-    
-    
-#     # reply_text = f'Your ID: {p.id}\nMessage ID: {msg.id}\n\n{text}'
-#     # update.effective_message.reply_text(
-#     #     text=reply_text,
-#     #     reply_markup=button
-#     # )
-    
-    
-#     # button = [[KeyboardButton("Press me!", request_poll=KeyboardButtonPollType())]]
-#     # message = "Press the button to let the bot generate a preview for your poll"
-#     # update.effective_message.reply_text(
-#     #     message, reply_markup=ReplyKeyboardMarkup(button, one_time_keyboard=True, resize_keyboard=True)
-#     # )
-    
-#     questions = ["Good", "Really good", "Fantastic", "Great"]
-#     message = context.bot.send_poll(
-#         update.effective_chat.id,
-#         "How are you?",
-#         questions,
-#         is_anonymous=False,
-#         allows_multiple_answers=True,
-#     )
-#     # Save some info about the poll the bot_data for later use in receive_poll_answer
-#     payload = {
-#         message.poll.id: {
-#             "questions": questions,
-#             "message_id": message.message_id,
-#             "chat_id": update.effective_chat.id,
-#             "answers": 0,
-#         }
-#     }
-#     context.bot_data.update(payload)
-
-# @log_errors
-# def count_messages(update: Update, context: CallbackContext):
-#     chat_id = update.message.chat_id
-    
-#     profile, just_created = Profile.objects.get_or_create(
-#         external_id=chat_id,
-#         defaults={
-#             'username': update.message.from_user.username
-#         }
-#     )
-    
-#     count = Message.objects.filter(profile=profile).count()
-    
-#     update.message.reply_text(
-#         text=f'You have {count} messages'
-#     )
-    
-
-# def quiz(update: Update, context: CallbackContext) -> None:
-#     """Send a predefined poll"""
-#     questions = ["1", "2", "4", "20"]
-#     message = update.effective_message.reply_poll(
-#         "How many eggs do you need for a cake?", questions, type=Poll.QUIZ, correct_option_id=2
-#     )
-#     # Save some info about the poll the bot_data for later use in receive_quiz_answer
-#     payload = {
-#         message.poll.id: {"chat_id": update.effective_chat.id, "message_id": message.message_id}
-#     }
-#     context.bot_data.update(payload)
 
 
 def start(update: Update, context: CallbackContext):
@@ -300,7 +206,8 @@ def get_signup_typed_group(update: Update, context: CallbackContext) -> int:
         
         update.message.reply_text(
             text=(f'Sign up was successfull.\nWelcome, {current_student.real_name} (group {current_student.group})!\n' + 
-                  f'You can check your data by /show_profile.'),
+                  f'You can check your data by /show_profile.\n\n' + 
+                  f'Now instructors can send you polls and questions'),
             reply_markup=main_markup
         )
         
@@ -377,8 +284,6 @@ def unknown_command(update: Update, context: CallbackContext):
 
 def receive_answer(update: Update, context: CallbackContext):
     
-    # update.poll.options[0].voter_count
-    
     poll: TelegramPoll = TelegramPoll.objects.get(
         telegram_poll_id=update.poll_answer.poll_id
     )
@@ -402,7 +307,7 @@ def receive_answer(update: Update, context: CallbackContext):
     
     
 class Command(BaseCommand):
-    help = 'Survey Bot'
+    help = 'Starts the bot'
     
     def handle(self, *args, **options):
         updater = Updater(os.getenv('TOKEN'), use_context=True)
