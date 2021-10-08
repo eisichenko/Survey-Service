@@ -5,13 +5,8 @@ from bot_admin.models import *
 import os
 
 
-default_question = 'How are you?'
-default_options = ['Good', 'Perfect', 'Happy', 'Bad']
-default_correct_options = [1]
-
-
 class Command(BaseCommand):
-    help = 'Send Poll'
+    help = 'Send poll'
     
     def handle(self, *args, **kwargs):
         request = Request(
@@ -97,17 +92,9 @@ class Command(BaseCommand):
                 telegram_poll_id=message.poll.id,
                 correct_options=current_correct_options,
                 poll_group_id=next_id,
+                option_number=option_number,
                 question=current_question,
             )
-            
-            # default_telegram_poll: TelegramPoll = TelegramPoll.objects.create(
-            #     student=student,
-            #     telegram_message_id=message.message_id,
-            #     telegram_poll_id=message.poll.id,
-            #     correct_options=default_correct_options,
-            #     poll_group_id=next_id,
-            #     question=default_question,
-            # )
             
             print(f'\nPoll was successfully sent to {student.real_name} from group {student.group}')
         

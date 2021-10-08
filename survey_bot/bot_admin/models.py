@@ -108,8 +108,18 @@ class TelegramPoll(models.Model):
         auto_now_add=True
     )
     
+    selected_options = models.JSONField(
+        verbose_name='Selected options by student',
+        null=True
+    )
+    
     correct_options = models.JSONField(
         verbose_name='Correct options',
+        null=False
+    )
+    
+    option_number = models.PositiveIntegerField(
+        verbose_name='Option number',
         null=False
     )
     

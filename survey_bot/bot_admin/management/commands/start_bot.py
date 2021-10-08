@@ -291,6 +291,7 @@ def receive_answer(update: Update, context: CallbackContext):
     user_answers = set(update.poll_answer.option_ids)
     correct_answers = set(poll.correct_options)
     
+    poll.selected_options = update.poll_answer.option_ids
     poll.is_student_passed = (user_answers == correct_answers)
     poll.save()
     
