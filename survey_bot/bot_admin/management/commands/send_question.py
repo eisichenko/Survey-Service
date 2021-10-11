@@ -32,7 +32,6 @@ class Command(BaseCommand):
         
         print()
         
-        students = Student.objects.all()
         telegram_messages = TelegramMessage.objects.all()
         
         max_message: TelegramMessage = telegram_messages.order_by('-message_group_id').first()
@@ -50,12 +49,14 @@ class Command(BaseCommand):
             
             print()
             
-            choice = input('Would you like to specify student usernames (you can find them by "list_students" command)? (y/n)')
+            choice = input('Would you like to specify student usernames (you can find them by "list_students" command)? (y/n) ')
             
             if choice == 'y':
                 usernames = input('\nEnter student usernames divided by space who will receive message: ').split()
 
                 print()
+                
+                students = []
 
                 for username in usernames:
                     student: Student = Student.objects.filter(
@@ -63,47 +64,30 @@ class Command(BaseCommand):
                     ).first()
                     
                     if student == None:
-                        print(f'Student {username} was not found')
+                        self.stdout.write(self.style.ERROR(f'Student {username} was not found'))
                     else:
-                        message: Message = bot.send_message(
-                            chat_id=student.telegram_chat_id,
-                            text=('<b><i>Question</i></b>:\n\n' + question_text),
-                            reply_markup=answer_markup,
-                            parse_mode=ParseMode.HTML
-                        )
-                    
-                        telegram_message: TelegramMessage = TelegramMessage.objects.create(
-                            student=student,
-                            telegram_message_id=message.message_id,
-                            text=question_text,
-                            message_group_id=next_id,
-                            is_closed=False
-                        )
-                        
-                        print(f'Sending question to {username}')
+                        students.append(student)
             else:
                 students = Student.objects.all()
                 
-                print()
+            for student in students:
+                message: Message = bot.send_message(
+                    chat_id=student.telegram_chat_id,
+                    text=('<b><i>Question</i></b>:\n\n' + question_text),
+                    reply_markup=answer_markup,
+                    parse_mode=ParseMode.HTML
+                )
                 
-                for student in students:
-                    message: Message = bot.send_message(
-                        chat_id=student.telegram_chat_id,
-                        text=('<b><i>Question</i></b>:\n\n' + question_text),
-                        reply_markup=answer_markup,
-                        parse_mode=ParseMode.HTML
-                    )
-                    
-                    telegram_message: TelegramMessage = TelegramMessage.objects.create(
-                        student=student,
-                        telegram_message_id=message.message_id,
-                        text=question_text,
-                        message_group_id=next_id,
-                        is_closed=False
-                    )
-                    
-                    print(f'Sending question to {student.telegram_username}')
+                telegram_message: TelegramMessage = TelegramMessage.objects.create(
+                    student=student,
+                    telegram_message_id=message.message_id,
+                    text=question_text,
+                    message_group_id=next_id,
+                    is_closed=False
+                )
                 
+                print(f'Sending question to {student.telegram_username}')
+            
             self.stdout.write(self.style.SUCCESS('\nQuestion was sent successfully\n'))
         except Exception as e:
             print(e)

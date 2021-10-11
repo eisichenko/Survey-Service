@@ -63,6 +63,11 @@ class TelegramMessage(models.Model):
         verbose_name='Question answer'
     )
     
+    image_id_answer = models.TextField(
+        verbose_name='Image answer ID',
+        null=True
+    )
+    
     message_group_id = models.PositiveBigIntegerField(
         null=False,
         verbose_name='Message group ID'

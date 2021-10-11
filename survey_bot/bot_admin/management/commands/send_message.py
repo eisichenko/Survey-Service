@@ -29,9 +29,11 @@ class Command(BaseCommand):
             
             print()
             
-            choice = input('Would you like to specify student usernames (you can find them by "list_students" command)? (y/n)')
+            choice = input('Would you like to specify student usernames (you can find them by "list_students" command)? (y/n) ')
             
             if choice == 'y':
+                students = []
+                
                 usernames = input('\nEnter student usernames divided by space who will receive message: ').split()
 
                 for username in usernames:
@@ -42,24 +44,20 @@ class Command(BaseCommand):
                     if student == None:
                         print(f'Student {username} was not found')
                     else:
-                        bot.send_message(
-                            chat_id=student.telegram_chat_id,
-                            text=msg_text
-                        )
-                        print(f'Sending to {username}')
+                        students.append(student)
             else:
                 students = Student.objects.all()
                 
-                for student in students:
-                    student: Student
-                    
-                    bot.send_message(
-                        chat_id=student.telegram_chat_id,
-                        text=msg_text
-                    )
-                    
-                    print(f'Sending to {student.telegram_username}')
+            for student in students:
+                student: Student
                 
+                bot.send_message(
+                    chat_id=student.telegram_chat_id,
+                    text=msg_text
+                )
+                
+                print(f'Sending to {student.telegram_username}')
+            
             print('\nMessage was sent successfully\n')
         except Exception as e:
             print(e)

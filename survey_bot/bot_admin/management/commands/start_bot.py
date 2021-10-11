@@ -15,12 +15,14 @@ from telegram.ext import (
 )
 from telegram.ext.dispatcher import DispatcherHandlerStop
 from telegram.ext import ConversationHandler
+from telegram.files.inputmedia import InputMediaPhoto
 from telegram.utils.request import Request
 from bot_admin.models import *
 import os
 import logging
 from . import is_valid_group, is_valid_name
 from .send_question import answer_edit_markup, ANSWER_DATA, EDIT_DATA
+from datetime import date, datetime
 
 
 EDIT_NAME_KEYBOARD_VALUE = 'Edit name'
@@ -341,47 +343,45 @@ def receive_answer_operation(update: Update, context: CallbackContext):
 def unknown_command(update: Update, context: CallbackContext):
     answer_text = update.message.text
     
+    if answer_text == None:
+        answer_text = update.message.caption
+    
+    image = None
+    
+    if update.message.photo != None and len(update.message.photo) > 0:
+        print(update.message.photo)
+        image = update.message.photo[-1]
+    
+    data = None
+    
     if ANSWERING_MESSAGE_ID_DATA in context.user_data:
-        target_msg_id = context.user_data[ANSWERING_MESSAGE_ID_DATA]
-        
-        question_message: TelegramMessage = TelegramMessage.objects.get(
-            telegram_message_id=target_msg_id
-        )
-        
-        question_message.answer = answer_text
-        question_message.save()
-        
-        msg_text = ('<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question_message.text + 
-                    '\n\n<b><i>Your answer</i></b>:\n\n' + answer_text)
-        
-        context.bot.edit_message_text(
-            text=msg_text,
-            chat_id=update.message.chat_id,
-            message_id=target_msg_id,
-            parse_mode=ParseMode.HTML
-        )
-        
-        context.bot.edit_message_reply_markup(
-            chat_id=update.message.chat_id,
-            message_id=target_msg_id,
-            reply_markup=answer_edit_markup
-        )
-        
-        update.message.reply_text(text=f'Answer to question "{question_message.text}" was recorded successfully')
-        
-        del context.user_data[ANSWERING_MESSAGE_ID_DATA]
+        data = ANSWERING_MESSAGE_ID_DATA
     elif EDITING_ANSWER_MESSAGE_ID_DATA in context.user_data:
-        target_msg_id = context.user_data[EDITING_ANSWER_MESSAGE_ID_DATA]
+        data = EDITING_ANSWER_MESSAGE_ID_DATA
+    
+    print(data)
+    
+    if data != None:
+        target_msg_id = context.user_data[data]
         
         question_message: TelegramMessage = TelegramMessage.objects.get(
             telegram_message_id=target_msg_id
         )
         
         question_message.answer = answer_text
+        
+        image_id = image.file_id if image != None else None
+        question_message.image_id_answer = image_id
+        
         question_message.save()
         
-        msg_text = ('<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question_message.text + 
-                    '\n\n<b><i>Your answer</i></b>:\n\n' + answer_text)
+        msg_text = '<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question_message.text
+        
+        if image != None:
+            msg_text += f'\n\n<b><i>Image was attached at {datetime.utcnow().strftime("%d/%m/%y %H:%M:%S")} (UTC)</i></b>'
+        
+        if answer_text != None and len(answer_text) > 0:
+            msg_text += '\n\n<b><i>Your answer</i></b>:\n\n' + answer_text
         
         context.bot.edit_message_text(
             text=msg_text,
@@ -396,9 +396,12 @@ def unknown_command(update: Update, context: CallbackContext):
             reply_markup=answer_edit_markup
         )
         
-        update.message.reply_text(text=f'Answer to question "{question_message.text}" was edited successfully')
+        if data == ANSWERING_MESSAGE_ID_DATA:
+            update.message.reply_text(text=f'Answer to question "{question_message.text}" was recorded successfully')
+        elif data == EDITING_ANSWER_MESSAGE_ID_DATA:
+            update.message.reply_text(text=f'Answer to question "{question_message.text}" was edited successfully')
         
-        del context.user_data[EDITING_ANSWER_MESSAGE_ID_DATA]
+        del context.user_data[data]
     else:
         update.message.reply_text(text='Unknown command.')
 
@@ -451,7 +454,7 @@ class Command(BaseCommand):
         dispatcher.add_handler(CommandHandler('send_answer', send_question_answer))
         dispatcher.add_handler(PollAnswerHandler(receive_poll_answer))
         dispatcher.add_handler(CallbackQueryHandler(receive_answer_operation))
-        dispatcher.add_handler(MessageHandler(Filters.text, unknown_command))
+        dispatcher.add_handler(MessageHandler(Filters.photo | Filters.text, unknown_command))
         
         updater.start_polling()
         updater.idle()

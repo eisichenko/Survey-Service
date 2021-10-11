@@ -34,7 +34,7 @@ class Command(BaseCommand):
         else:
             next_id = 0
             
-        choice = input('Would you like to set open period (up to 600 seconds)? (y/n)')
+        choice = input('Would you like to set open period (up to 600 seconds)? (y/n) ')
         
         if choice == 'y':
             try:

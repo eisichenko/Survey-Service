@@ -51,7 +51,7 @@ class Command(BaseCommand):
                             else:
                                 msg_text = ('<b><i>[CLOSED]</i></b>\n\n<b><i>Question</i></b>:\n\n' + question.text)
         
-                            
+
                             bot.edit_message_text(
                                 chat_id=question.student.telegram_chat_id,
                                 message_id=question.telegram_message_id,
