@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from telegram import Bot,Poll, Message
+from telegram import Bot, Poll, Message
 from telegram.utils.request import Request
 from bot_admin.models import *
 import os
@@ -94,6 +94,7 @@ class Command(BaseCommand):
                 poll_group_id=next_id,
                 option_number=option_number,
                 question=current_question,
+                open_period=current_open_period
             )
             
             print(f'\nPoll was successfully sent to {student.real_name} from group {student.group}')

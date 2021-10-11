@@ -1,5 +1,7 @@
+from time import strftime
 from django.db import models
 from django.db.models.deletion import PROTECT
+from datetime import datetime, timedelta
 
 
 class Student(models.Model):
@@ -56,9 +58,19 @@ class TelegramMessage(models.Model):
         verbose_name='Message text',
     )
     
-    message_group_id = models.TextField(
+    answer = models.TextField(
+        null=True,
+        verbose_name='Question answer'
+    )
+    
+    message_group_id = models.PositiveBigIntegerField(
         null=False,
         verbose_name='Message group ID'
+    )
+    
+    is_closed = models.BooleanField(
+        null=False,
+        verbose_name='Is question closed'
     )
     
     created_at = models.DateTimeField(
@@ -118,6 +130,16 @@ class TelegramPoll(models.Model):
         null=False
     )
     
+    is_manually_closed = models.BooleanField(
+        verbose_name='Is poll manually closed',
+        default=False
+    )
+    
+    open_period = models.PositiveIntegerField(
+        verbose_name='Open period',
+        null=True
+    )
+    
     option_number = models.PositiveIntegerField(
         verbose_name='Option number',
         null=False
@@ -128,6 +150,13 @@ class TelegramPoll(models.Model):
         default=False
     )
     
+    def is_closed(self):
+        if self.open_period != None:
+            created_at = datetime.fromisoformat(str(self.created_at)).replace(tzinfo=None)
+            is_finished = datetime.utcnow() - created_at  > timedelta(seconds=self.open_period)
+            return is_finished
+        return self.is_manually_closed
+        
     def __str__(self):
         return f'Poll {self.pk} to {self.student}'
     

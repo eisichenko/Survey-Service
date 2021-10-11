@@ -25,15 +25,17 @@ class Command(BaseCommand):
             poll_group_ids: str = input('Enter poll group IDs divided by space (you can find them by "list_polls" command): ')
             poll_group_ids = [int(id) for id in poll_group_ids.split()]
             
-            choice = input('Are you sure to close all polls? (y/n)')
+            choice = input('Are you sure to close polls? (y/n)')
             
             if choice == 'y':
                 for poll_group_id in poll_group_ids:
                     try:
                         polls = TelegramPoll.objects.filter(poll_group_id=poll_group_id).all()
                         
+                        print()
+                        
                         if len(polls) == 0:
-                            raise Exception(f'Poll group id {poll_group_id} was not found')
+                            self.stdout.write(self.style.ERROR(f'Poll group id {poll_group_id} was not found'))
                         
                         print(f'Closing poll group ID: {polls[0].poll_group_id}; Question: {polls[0].question}; Time (UTC): {polls[0].created_at}\n')
                     
@@ -44,12 +46,15 @@ class Command(BaseCommand):
                                 chat_id=poll.student.telegram_chat_id,
                                 message_id=poll.telegram_message_id
                             )
+                            
+                            poll.is_manually_closed = True
+                            poll.save()
                     except Exception as e:
                         print(str(e) + '\n')
                         
-                print('Polls were closed successfully!')
+                self.stdout.write(self.style.SUCCESS('Polls were closed successfully!'))
             else:
-                print('Operaiton was declined.')
+                self.stdout.write(self.style.ERROR('Operaiton was declined.'))
             
         except Exception as e:
             print(e)

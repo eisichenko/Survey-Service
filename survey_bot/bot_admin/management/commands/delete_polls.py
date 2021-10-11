@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from telegram import Bot, Poll, Message
+from telegram import Bot
 from telegram.utils.request import Request
 from bot_admin.models import *
 import os
@@ -25,11 +25,14 @@ class Command(BaseCommand):
             poll_group_ids: str = input('Enter poll group IDs divided by space (you can find them by "list_polls" command): ')
             poll_group_ids = [int(id) for id in poll_group_ids.split()]
             
+            print()
+            
             for poll_group_id in poll_group_ids:
                 polls = TelegramPoll.objects.filter(poll_group_id=poll_group_id).all()
                 
                 if len(polls) == 0:
-                    raise Exception(f'Poll group (group id: {poll_group_id}) was not found')
+                    print(f'Poll group (group id: {poll_group_id}) was not found')
+                    continue
             
                 print(f'\nDeleting poll with question: "{polls[0].question}"')
             

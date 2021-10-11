@@ -1,12 +1,17 @@
 from django.core.management.base import BaseCommand
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import (
+    Update, 
+    ReplyKeyboardMarkup,
+    ParseMode
+)
 from telegram.ext import (
     CallbackContext, 
     Filters, 
-    Updater, 
+    Updater,
     CommandHandler, 
     MessageHandler,
     PollAnswerHandler,
+    CallbackQueryHandler
 )
 from telegram.ext.dispatcher import DispatcherHandlerStop
 from telegram.ext import ConversationHandler
@@ -15,6 +20,7 @@ from bot_admin.models import *
 import os
 import logging
 from . import is_valid_group, is_valid_name
+from .send_question import answer_edit_markup, ANSWER_DATA, EDIT_DATA
 
 
 EDIT_NAME_KEYBOARD_VALUE = 'Edit name'
@@ -41,12 +47,18 @@ main_markup = ReplyKeyboardMarkup(keyboard=main_keyboard,
                                   one_time_keyboard=False, 
                                   resize_keyboard=True)
 
+
 CHOOSE_OPTION_ACTION = 0
 GET_TYPED_USERNAME_ACTION = 1
 GET_TYPED_GROUP_ACTION = 2
 
+GET_TYPED_ANSWER_ACTION = 0
+
 REAL_NAME_DATA = 'real_name'
 GROUP_DATA = 'group'
+
+ANSWERING_MESSAGE_ID_DATA = 'answer_msg_id'
+EDITING_ANSWER_MESSAGE_ID_DATA = 'edit_ans_msg_id'
 
 
 def start(update: Update, context: CallbackContext):
@@ -251,7 +263,9 @@ def cancel(update: Update, context: CallbackContext):
 def help(update: Update, context: CallbackContext):
     text = ('• With this bot you can receive surveys and quizes from an instructor\n\n' +
         '• Edit your profile by /edit_profile\n\n' +
-        '• Show profile by /show_profile\n\n')
+        '• Show profile by /show_profile\n\n' + 
+        '• Sign up by /signup\n\n' + 
+        '• Cancel operation by /cancel\n\n')
     
     update.message.reply_text(
         text=text,
@@ -278,11 +292,7 @@ def show_profile_info(update: Update, context: CallbackContext):
         )
         
 
-def unknown_command(update: Update, context: CallbackContext):
-    update.message.reply_text(text='Unknown command')
-
-
-def receive_answer(update: Update, context: CallbackContext):
+def receive_poll_answer(update: Update, context: CallbackContext):
     
     poll: TelegramPoll = TelegramPoll.objects.get(
         telegram_poll_id=update.poll_answer.poll_id
@@ -300,13 +310,99 @@ def receive_answer(update: Update, context: CallbackContext):
                  ' to poll (id: ' + str(update.poll_answer.poll_id) + ') ' + 
                  'correct: ' + str(correct_answers) + ' passed: '
                  + str(user_answers == correct_answers))
+
+
+def send_question_answer(update: Update, context: CallbackContext):
+    print(context.args)
+    update.message.reply_text(text='/send_answer 1 2')
+
+
+def receive_answer_operation(update: Update, context: CallbackContext):
+    query = update.callback_query
     
-    # if context.bot_data[poll_id]["answers"] == 3:
-    #     context.bot.stop_poll(
-    #         context.bot_data[poll_id]["chat_id"], context.bot_data[poll_id]["message_id"]
-    #     )
+    query.answer()
     
+    logging.info(f'operation: ' + str(query.data))
     
+    if query.data == ANSWER_DATA:
+        context.user_data[ANSWERING_MESSAGE_ID_DATA] = query.message.message_id
+        
+        query.message.reply_text(
+            text='Please, send your answer by text or image'
+        )
+    elif query.data == EDIT_DATA:
+        context.user_data[EDITING_ANSWER_MESSAGE_ID_DATA] = query.message.message_id
+        
+        query.message.reply_text(
+            text='Please, send your new answer by text or image'
+        )
+
+
+def unknown_command(update: Update, context: CallbackContext):
+    answer_text = update.message.text
+    
+    if ANSWERING_MESSAGE_ID_DATA in context.user_data:
+        target_msg_id = context.user_data[ANSWERING_MESSAGE_ID_DATA]
+        
+        question_message: TelegramMessage = TelegramMessage.objects.get(
+            telegram_message_id=target_msg_id
+        )
+        
+        question_message.answer = answer_text
+        question_message.save()
+        
+        msg_text = ('<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question_message.text + 
+                    '\n\n<b><i>Your answer</i></b>:\n\n' + answer_text)
+        
+        context.bot.edit_message_text(
+            text=msg_text,
+            chat_id=update.message.chat_id,
+            message_id=target_msg_id,
+            parse_mode=ParseMode.HTML
+        )
+        
+        context.bot.edit_message_reply_markup(
+            chat_id=update.message.chat_id,
+            message_id=target_msg_id,
+            reply_markup=answer_edit_markup
+        )
+        
+        update.message.reply_text(text=f'Answer to question "{question_message.text}" was recorded successfully')
+        
+        del context.user_data[ANSWERING_MESSAGE_ID_DATA]
+    elif EDITING_ANSWER_MESSAGE_ID_DATA in context.user_data:
+        target_msg_id = context.user_data[EDITING_ANSWER_MESSAGE_ID_DATA]
+        
+        question_message: TelegramMessage = TelegramMessage.objects.get(
+            telegram_message_id=target_msg_id
+        )
+        
+        question_message.answer = answer_text
+        question_message.save()
+        
+        msg_text = ('<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question_message.text + 
+                    '\n\n<b><i>Your answer</i></b>:\n\n' + answer_text)
+        
+        context.bot.edit_message_text(
+            text=msg_text,
+            chat_id=update.message.chat_id,
+            message_id=target_msg_id,
+            parse_mode=ParseMode.HTML
+        )
+        
+        context.bot.edit_message_reply_markup(
+            chat_id=update.message.chat_id,
+            message_id=target_msg_id,
+            reply_markup=answer_edit_markup
+        )
+        
+        update.message.reply_text(text=f'Answer to question "{question_message.text}" was edited successfully')
+        
+        del context.user_data[EDITING_ANSWER_MESSAGE_ID_DATA]
+    else:
+        update.message.reply_text(text='Unknown command.')
+
+
 class Command(BaseCommand):
     help = 'Starts the bot'
     
@@ -331,7 +427,7 @@ class Command(BaseCommand):
                     CommandHandler('cancel', cancel)
                 ]
             },
-            fallbacks=[]
+            fallbacks=[CommandHandler('cancel', cancel)]
         )
         
         signup_conversation_handler = ConversationHandler(
@@ -345,14 +441,16 @@ class Command(BaseCommand):
                     MessageHandler(Filters.text & ~(Filters.command), get_signup_typed_group),
                 ]
             },
-            fallbacks=[]
+            fallbacks=[CommandHandler('cancel', cancel)]
         )
         
         dispatcher.add_handler(edit_conversation_handler)
         dispatcher.add_handler(signup_conversation_handler)
         dispatcher.add_handler(CommandHandler('help', help))
         dispatcher.add_handler(CommandHandler('show_profile', show_profile_info))
-        dispatcher.add_handler(PollAnswerHandler(receive_answer))
+        dispatcher.add_handler(CommandHandler('send_answer', send_question_answer))
+        dispatcher.add_handler(PollAnswerHandler(receive_poll_answer))
+        dispatcher.add_handler(CallbackQueryHandler(receive_answer_operation))
         dispatcher.add_handler(MessageHandler(Filters.text, unknown_command))
         
         updater.start_polling()

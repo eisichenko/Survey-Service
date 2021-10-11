@@ -6,7 +6,7 @@ import os
 
 
 class Command(BaseCommand):
-    help = 'Send results to students'
+    help = 'Send poll results to students'
     
     def handle(self, *args, **kwargs):
         request = Request(

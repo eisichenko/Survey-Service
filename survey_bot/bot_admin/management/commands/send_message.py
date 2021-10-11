@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from telegram import Bot, Poll, Message
+from telegram import Bot
 from telegram.utils.request import Request
 from bot_admin.models import *
 import os

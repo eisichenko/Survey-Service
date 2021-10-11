@@ -31,7 +31,7 @@ class Command(BaseCommand):
                     if poll.is_student_passed:
                         correct_answers[current_student] += 1
                         
-            print('\nResults were received successfully!\n')
+            self.stdout.write(self.style.SUCCESS('\nResults were received successfully!\n'))
             
             for student, correct_number in sorted(correct_answers.items(), key=lambda item: (item[0].group, item[0].real_name)):
                 student: Student

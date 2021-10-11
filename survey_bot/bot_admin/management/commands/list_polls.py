@@ -10,9 +10,12 @@ class Command(BaseCommand):
         
         polls = TelegramPoll.objects.all().order_by('-poll_group_id')
         
+        if (len(polls) == 0):
+            self.stdout.write(self.style.SUCCESS('No polls in database'))
+        
         for poll in polls:
             poll: TelegramPoll
-            print(f'Poll group ID: {poll.poll_group_id}; Question: {poll.question}; Time (UTC): {poll.created_at}\n')
+            self.stdout.write(self.style.SUCCESS(f'Poll group ID: {poll.poll_group_id}; Question: {poll.question}; Time (UTC): {poll.created_at}; Is closed: {poll.is_closed()}\n'))
         
         print()
         
