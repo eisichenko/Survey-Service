@@ -13,16 +13,13 @@ from telegram.ext import (
     PollAnswerHandler,
     CallbackQueryHandler
 )
-from telegram.ext.dispatcher import DispatcherHandlerStop
 from telegram.ext import ConversationHandler
-from telegram.files.inputmedia import InputMediaPhoto
-from telegram.utils.request import Request
 from bot_admin.models import *
 import os
 import logging
-from . import is_valid_group, is_valid_name
+from . import is_valid_group, is_valid_name, log_errors
 from .send_question import answer_edit_markup, ANSWER_DATA, EDIT_DATA
-from datetime import date, datetime
+from datetime import datetime
 
 
 EDIT_NAME_KEYBOARD_VALUE = 'Edit name'
@@ -61,8 +58,12 @@ GROUP_DATA = 'group'
 
 ANSWERING_MESSAGE_ID_DATA = 'answer_msg_id'
 EDITING_ANSWER_MESSAGE_ID_DATA = 'edit_ans_msg_id'
+MEDIA_GROUP_IDS_DATA = 'media_group_ids'
+IMAGE_IDS_DATA = 'image_ids'
+GROUP_TARGET_ID_DATA = 'group_target_id'
 
 
+@log_errors
 def start(update: Update, context: CallbackContext):
     update.message.reply_text(
         text=('Welcome to Survey Bot!\n' + 
@@ -83,6 +84,7 @@ def start(update: Update, context: CallbackContext):
         )
         
 
+@log_errors
 def edit_profile(update: Update, context: CallbackContext):
     if (Student.objects.filter(telegram_id=update.effective_user.id).exists()):
         update.message.reply_text(
@@ -100,6 +102,7 @@ def edit_profile(update: Update, context: CallbackContext):
         return ConversationHandler.END
     
         
+@log_errors
 def edit_name(update: Update, context: CallbackContext) -> int:
     logging.info(f'{update.effective_user.username} edits name')
     
@@ -107,7 +110,8 @@ def edit_name(update: Update, context: CallbackContext) -> int:
     
     return GET_TYPED_USERNAME_ACTION
         
-        
+
+@log_errors
 def edit_group(update: Update, context: CallbackContext) -> int:
     logging.info(f'{update.effective_user.username} edits group')
     update.message.reply_text('Please send your group (100 characters limit)')
@@ -115,6 +119,7 @@ def edit_group(update: Update, context: CallbackContext) -> int:
     return GET_TYPED_GROUP_ACTION
 
 
+@log_errors
 def get_edit_typed_username(update: Update, context: CallbackContext) -> int:
     res = update.message.text
     
@@ -142,6 +147,7 @@ def get_edit_typed_username(update: Update, context: CallbackContext) -> int:
         )    
 
 
+@log_errors
 def get_edit_typed_group(update: Update, context: CallbackContext) -> int:
     res = update.message.text
     
@@ -166,6 +172,7 @@ def get_edit_typed_group(update: Update, context: CallbackContext) -> int:
         )    
 
 
+@log_errors
 def get_signup_typed_username(update: Update, context: CallbackContext) -> int:
     res = update.message.text
     
@@ -194,6 +201,7 @@ def get_signup_typed_username(update: Update, context: CallbackContext) -> int:
         )
 
 
+@log_errors
 def get_signup_typed_group(update: Update, context: CallbackContext) -> int:
     res = update.message.text
     
@@ -233,6 +241,7 @@ def get_signup_typed_group(update: Update, context: CallbackContext) -> int:
         )
 
 
+@log_errors
 def sign_up(update: Update, context: CallbackContext):
     if (Student.objects.filter(telegram_id=update.effective_user.id).exists()):
         update.message.reply_text(
@@ -254,6 +263,7 @@ def sign_up(update: Update, context: CallbackContext):
         return GET_TYPED_USERNAME_ACTION
 
 
+@log_errors
 def cancel(update: Update, context: CallbackContext):
     update.message.reply_text(
             text='Operation was canceled',
@@ -262,6 +272,7 @@ def cancel(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
+@log_errors
 def help(update: Update, context: CallbackContext):
     text = ('• With this bot you can receive surveys and quizes from an instructor\n\n' +
         '• Edit your profile by /edit_profile\n\n' +
@@ -275,6 +286,7 @@ def help(update: Update, context: CallbackContext):
     )
     
 
+@log_errors
 def show_profile_info(update: Update, context: CallbackContext):
     if (Student.objects.filter(telegram_id=update.effective_user.id).exists()):
         current_student: Student = Student.objects.get(telegram_id=update.effective_user.id)
@@ -294,6 +306,7 @@ def show_profile_info(update: Update, context: CallbackContext):
         )
         
 
+@log_errors
 def receive_poll_answer(update: Update, context: CallbackContext):
     
     poll: TelegramPoll = TelegramPoll.objects.get(
@@ -314,11 +327,13 @@ def receive_poll_answer(update: Update, context: CallbackContext):
                  + str(user_answers == correct_answers))
 
 
+@log_errors
 def send_question_answer(update: Update, context: CallbackContext):
     print(context.args)
     update.message.reply_text(text='/send_answer 1 2')
 
 
+@log_errors
 def receive_answer_operation(update: Update, context: CallbackContext):
     query = update.callback_query
     
@@ -329,40 +344,118 @@ def receive_answer_operation(update: Update, context: CallbackContext):
     if query.data == ANSWER_DATA:
         context.user_data[ANSWERING_MESSAGE_ID_DATA] = query.message.message_id
         
-        query.message.reply_text(
-            text='Please, send your answer by text or image'
-        )
     elif query.data == EDIT_DATA:
         context.user_data[EDITING_ANSWER_MESSAGE_ID_DATA] = query.message.message_id
-        
-        query.message.reply_text(
-            text='Please, send your new answer by text or image'
-        )
-
-
-def unknown_command(update: Update, context: CallbackContext):
-    answer_text = update.message.text
     
+    query.message.reply_text(
+        text=('Please, send your answer by text or image' + 
+                '\n\n• Telegram text message limit - up to 4096 characters' + 
+                '\n\n• Telegram message with images limit - up to 10 images, up to 1024 characters'+ 
+                '\n\n• Send /cancel_question to cancel sending answer')
+    )
+
+
+@log_errors
+def unknown_command(update: Update, context: CallbackContext):
+    target_data = None
+    group_target_id = None
+    
+    if ANSWERING_MESSAGE_ID_DATA in context.user_data:
+        target_data = ANSWERING_MESSAGE_ID_DATA
+    elif EDITING_ANSWER_MESSAGE_ID_DATA in context.user_data:
+        target_data = EDITING_ANSWER_MESSAGE_ID_DATA
+    
+    answer_text = update.message.text
     if answer_text == None:
         answer_text = update.message.caption
+        
+    if answer_text == '/cancel_question':
+        if target_data != None:
+            del context.user_data[target_data]
+        update.message.reply_text('Sending answer was canceled')
+        return
+        
+    if MEDIA_GROUP_IDS_DATA not in context.user_data:
+        context.user_data[MEDIA_GROUP_IDS_DATA] = {}
+        
+    groups: dict = context.user_data[MEDIA_GROUP_IDS_DATA]
+
+    media_group_id = update.message.media_group_id
+    
+    if media_group_id != None and target_data != None:
+        if media_group_id not in groups:
+            groups.clear()
+            groups[media_group_id] = {}
+            groups[media_group_id][IMAGE_IDS_DATA] = []
+            groups[media_group_id][GROUP_TARGET_ID_DATA] = context.user_data[target_data]
+            context.user_data[MEDIA_GROUP_IDS_DATA]
+            
+    if media_group_id != None and media_group_id in groups.keys():
+        group_target_id = groups[media_group_id][GROUP_TARGET_ID_DATA]
     
     image = None
     
     if update.message.photo != None and len(update.message.photo) > 0:
-        print(update.message.photo)
         image = update.message.photo[-1]
+
+    print('\n\nmedia group id: ' + str(media_group_id))
+    if media_group_id != None and media_group_id in groups.keys():
+        print('image ids: ' + str(groups[media_group_id][IMAGE_IDS_DATA]))
+    print('target data: ' + str(target_data))
+    print('group target id: ' + str(group_target_id))
+    print('image: ' + str(image))
+    print('groups: ' + str(groups))
     
-    data = None
-    
-    if ANSWERING_MESSAGE_ID_DATA in context.user_data:
-        data = ANSWERING_MESSAGE_ID_DATA
-    elif EDITING_ANSWER_MESSAGE_ID_DATA in context.user_data:
-        data = EDITING_ANSWER_MESSAGE_ID_DATA
-    
-    print(data)
-    
-    if data != None:
-        target_msg_id = context.user_data[data]
+    if group_target_id != None:
+        # handle group of images
+        target_msg_id = group_target_id
+        is_first_image_in_group = target_data != None
+        
+        question_message: TelegramMessage = TelegramMessage.objects.get(
+            telegram_message_id=target_msg_id
+        )
+        
+        if is_first_image_in_group:
+            question_message.answer = answer_text
+        
+        if image != None:
+            image_ids = groups[media_group_id][IMAGE_IDS_DATA]
+            image_ids.append(image.file_id)
+            question_message.image_ids = image_ids
+            
+        question_message.save()
+        
+        if is_first_image_in_group:
+            msg_text = '<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question_message.text
+            
+            if image != None:
+                msg_text += f'\n\n<b><i>Images were attached at {datetime.utcnow().strftime("%d/%m/%y %H:%M:%S")} (UTC)</i></b>'
+            
+            if answer_text != None and len(answer_text) > 0:
+                msg_text += '\n\n<b><i>Your answer</i></b>:\n\n' + answer_text
+            
+            context.bot.edit_message_text(
+                text=msg_text,
+                chat_id=update.message.chat_id,
+                message_id=target_msg_id,
+                parse_mode=ParseMode.HTML
+            )
+            
+            context.bot.edit_message_reply_markup(
+                chat_id=update.message.chat_id,
+                message_id=target_msg_id,
+                reply_markup=answer_edit_markup
+            )
+            
+            if target_data == ANSWERING_MESSAGE_ID_DATA:
+                update.message.reply_text(text=f'Answer to question "{question_message.text}" was recorded successfully')
+            elif target_data == EDITING_ANSWER_MESSAGE_ID_DATA:
+                update.message.reply_text(text=f'Answer to question "{question_message.text}" was edited successfully')
+            
+            del context.user_data[target_data]
+    elif target_data != None:
+        # handle text message
+        target_msg_id = context.user_data[target_data]
         
         question_message: TelegramMessage = TelegramMessage.objects.get(
             telegram_message_id=target_msg_id
@@ -370,9 +463,11 @@ def unknown_command(update: Update, context: CallbackContext):
         
         question_message.answer = answer_text
         
-        image_id = image.file_id if image != None else None
-        question_message.image_id_answer = image_id
-        
+        if image != None:
+            question_message.image_ids = [image.file_id]
+        else:
+            question_message.image_ids = None
+            
         question_message.save()
         
         msg_text = '<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question_message.text
@@ -396,12 +491,12 @@ def unknown_command(update: Update, context: CallbackContext):
             reply_markup=answer_edit_markup
         )
         
-        if data == ANSWERING_MESSAGE_ID_DATA:
+        if target_data == ANSWERING_MESSAGE_ID_DATA:
             update.message.reply_text(text=f'Answer to question "{question_message.text}" was recorded successfully')
-        elif data == EDITING_ANSWER_MESSAGE_ID_DATA:
+        elif target_data == EDITING_ANSWER_MESSAGE_ID_DATA:
             update.message.reply_text(text=f'Answer to question "{question_message.text}" was edited successfully')
         
-        del context.user_data[data]
+        del context.user_data[target_data]
     else:
         update.message.reply_text(text='Unknown command.')
 

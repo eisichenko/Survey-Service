@@ -63,8 +63,8 @@ class TelegramMessage(models.Model):
         verbose_name='Question answer'
     )
     
-    image_id_answer = models.TextField(
-        verbose_name='Image answer ID',
+    image_ids = models.JSONField(
+        verbose_name='Image answer IDs',
         null=True
     )
     
