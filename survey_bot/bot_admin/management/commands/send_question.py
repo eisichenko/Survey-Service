@@ -86,9 +86,9 @@ class Command(BaseCommand):
                     is_closed=False
                 )
                 
-                print(f'Sending question to {student.telegram_username}')
+                self.stdout.write(self.style.SUCCESS(f'\nSending question to {student.real_name} from group {student.group}'))
             
-            self.stdout.write(self.style.SUCCESS('\nQuestion was sent successfully\n'))
+            print('\nQuestion was sent successfully\n')
         except Exception as e:
             print(e)
         

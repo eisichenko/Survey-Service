@@ -415,6 +415,12 @@ def unknown_command(update: Update, context: CallbackContext):
             telegram_message_id=target_msg_id
         )
         
+        if question_message.is_closed:
+            if target_data != None:
+                del context.user_data[target_data]
+            update.message.reply_text('Question is closed')
+            return
+        
         if is_first_image_in_group:
             question_message.answer = answer_text
         
@@ -460,6 +466,12 @@ def unknown_command(update: Update, context: CallbackContext):
         question_message: TelegramMessage = TelegramMessage.objects.get(
             telegram_message_id=target_msg_id
         )
+        
+        if question_message.is_closed:
+            if target_data != None:
+                del context.user_data[target_data]
+            update.message.reply_text('Question is closed')
+            return
         
         question_message.answer = answer_text
         

@@ -19,7 +19,6 @@ class Command(BaseCommand):
             token=os.getenv('TOKEN')
         )
         
-        students = Student.objects.all()
         polls = TelegramPoll.objects.all()
         
         current_open_period = None
@@ -70,7 +69,26 @@ class Command(BaseCommand):
             print('At least 1 correct option is required')
             return
             
-        print('\nPoll group ID: ' + str(next_id))
+        print('\nPoll group ID: ' + str(next_id) + '\n')
+        
+        choice = input('Would you like to specify student usernames (you can find them by "list_students" command)? (y/n) ')
+            
+        if choice == 'y':
+            students = []
+            
+            usernames = input('\nEnter student usernames divided by space who will receive message: ').split()
+
+            for username in usernames:
+                student: Student = Student.objects.filter(
+                    telegram_username=username
+                ).first()
+                
+                if student == None:
+                    self.stdout.write(self.style.ERROR(f'Student {username} was not found'))
+                else:
+                    students.append(student)
+        else:
+            students = Student.objects.all()
         
         for student in students:
             student: Student
@@ -97,7 +115,9 @@ class Command(BaseCommand):
                 open_period=current_open_period
             )
             
-            print(f'\nPoll was successfully sent to {student.real_name} from group {student.group}')
+            self.stdout.write(self.style.SUCCESS(f'\nSending to {student.real_name} from group {student.group}'))
+        
+        print('\nPoll was successfully sent')
         
         print()
         

@@ -42,7 +42,7 @@ class Command(BaseCommand):
                     ).first()
                     
                     if student == None:
-                        print(f'Student {username} was not found')
+                        self.stdout.write(self.style.ERROR(f'Student {username} was not found'))
                     else:
                         students.append(student)
             else:
@@ -56,7 +56,7 @@ class Command(BaseCommand):
                     text=msg_text
                 )
                 
-                print(f'Sending to {student.telegram_username}')
+                self.stdout.write(self.style.SUCCESS(f'\nSending to {student.real_name} from group {student.group}'))
             
             print('\nMessage was sent successfully\n')
         except Exception as e:

@@ -8,7 +8,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         print()
         
-        questions = TelegramMessage.objects.all().order_by('-message_group_id')
+        questions = TelegramMessage.objects.all().order_by('message_group_id')
         
         if len(questions) == 0:
             self.stdout.write(self.style.SUCCESS('No text questions in database'))
