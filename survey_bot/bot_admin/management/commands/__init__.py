@@ -2,9 +2,9 @@ import logging
 import re
 from re import Match
 from telegram import Bot
+from telegram.utils.request import Request
 from telegram.ext.callbackcontext import CallbackContext
 from telegram.update import Update
-from telegram.utils.request import Request
 import os
 from dotenv import load_dotenv
 

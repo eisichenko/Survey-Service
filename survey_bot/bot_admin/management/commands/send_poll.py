@@ -120,4 +120,3 @@ class Command(BaseCommand):
         print('\nPoll was successfully sent')
         
         print()
-        

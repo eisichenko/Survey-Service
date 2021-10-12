@@ -19,7 +19,8 @@ class Command(BaseCommand):
                 polls = TelegramPoll.objects.filter(poll_group_id=poll_group_id).all()
                 
                 if len(polls) == 0:
-                    raise Exception(f'Poll group (group id: {poll_group_id}) was not found')
+                    self.stdout.write(self.style.ERROR(f'Poll group (group id: {poll_group_id}) was not found'))
+                    continue
             
                 for poll in polls:
                     poll: TelegramPoll
