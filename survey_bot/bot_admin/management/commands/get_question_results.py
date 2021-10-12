@@ -8,8 +8,6 @@ from telegram.utils.request import Request
 
 ALL_ANSWERS_DIRECTORY = 'answers ' + datetime.now().strftime('%d.%m.%Y %H:%M:%S')
 QUESTION_FILENAME = 'question.txt'
-ANSWER_FILENAME = 'answer.txt'
-EMPTY_ANSWER_FILENAME = 'answer_empty.txt'
 
 
 class Command(BaseCommand):
@@ -68,13 +66,13 @@ class Command(BaseCommand):
                             with open(os.path.join(ALL_ANSWERS_DIRECTORY, 
                                                 question_directory_name, 
                                                 student_directory_name,
-                                                EMPTY_ANSWER_FILENAME), 'w') as file:
+                                                f'empty.{student_directory_name}.txt'), 'w') as file:
                                 file.write('')
                         else:
                             with open(os.path.join(ALL_ANSWERS_DIRECTORY, 
                                                 question_directory_name, 
                                                 student_directory_name,
-                                                ANSWER_FILENAME), 'w') as file:
+                                                f'{student_directory_name}.txt'), 'w') as file:
                                 file.write(question.answer)
                     
                     if IMAGE_CHOICE == 'y':
@@ -87,7 +85,7 @@ class Command(BaseCommand):
                                     ALL_ANSWERS_DIRECTORY,
                                     question_directory_name,
                                     student_directory_name,
-                                    f'Image #{image_ids.index(id)}'
+                                    f'{student_directory_name} image #{image_ids.index(id)}'
                                 ))
                     
             self.stdout.write(self.style.SUCCESS('\nResults were received successfully!\n'))
