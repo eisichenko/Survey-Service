@@ -36,6 +36,9 @@ class Command(BaseCommand):
                     raise Exception('Invalid download directory')
                 global ALL_ANSWERS_DIRECTORY
                 ALL_ANSWERS_DIRECTORY = os.path.join(directory_path, ALL_ANSWERS_DIRECTORY)
+                self.stdout.write(self.style.WARNING(f'Was set path: {os.path.abspath(ALL_ANSWERS_DIRECTORY)}\n'))
+            else:
+                self.stdout.write(self.style.WARNING(f'\nWas set your current working directory: {os.path.abspath(ALL_ANSWERS_DIRECTORY)}\n'))
                 
             if os.path.isdir(ALL_ANSWERS_DIRECTORY):
                 raise Exception(f'Directory {ALL_ANSWERS_DIRECTORY} already exists')
