@@ -27,6 +27,16 @@ class Command(BaseCommand):
         )
         
         try:
+            choice = input('Would you like to specify download directory? (by default files are saved in current working directory) (y/n) ')
+        
+            if choice == 'y':
+                directory_path = input('Enter download path: ')
+                print()
+                if not os.path.isdir(directory_path):
+                    raise Exception('Invalid download directory')
+                global ALL_ANSWERS_DIRECTORY
+                ALL_ANSWERS_DIRECTORY = os.path.join(directory_path, ALL_ANSWERS_DIRECTORY)
+                
             if os.path.isdir(ALL_ANSWERS_DIRECTORY):
                 raise Exception(f'Directory {ALL_ANSWERS_DIRECTORY} already exists')
             
@@ -89,6 +99,7 @@ class Command(BaseCommand):
                                 ))
                     
             self.stdout.write(self.style.SUCCESS('\nResults were received successfully!\n'))
+            self.stdout.write(self.style.SUCCESS(f'Download path: {os.path.abspath(ALL_ANSWERS_DIRECTORY)}\n'))
             
         except Exception as e:
             print(e)

@@ -42,7 +42,7 @@ class Command(BaseCommand):
             next_id = str(0)
         
         try:
-            question_text = input('Please enter the question text: ')
+            question_text = input('Please enter the question text (4096 characters limit): ')
                     
             if len(question_text.strip()) == 0:
                 raise Exception('Empty question is not allowed')
@@ -88,8 +88,8 @@ class Command(BaseCommand):
                 
                 self.stdout.write(self.style.SUCCESS(f'\nSending question to {student.real_name} from group {student.group}'))
             
-            print('\nQuestion was sent successfully\n')
+            self.stdout.write(self.style.SUCCESS('\nQuestion was sent successfully\n'))
         except Exception as e:
-            print(e)
+            self.stdout.write(self.style.ERROR(e))
         
         print()

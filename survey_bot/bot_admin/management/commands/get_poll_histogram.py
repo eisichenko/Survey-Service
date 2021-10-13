@@ -32,8 +32,6 @@ class Command(BaseCommand):
                 if selected_answers != None:
                     for i in selected_answers:
                         answers_number[i][1] += 1
-                    
-            print(answers_number)
             
             options = [f'#{answer[0]}' for answer in answers_number]
             options_pos = list(range(len(options)))

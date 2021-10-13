@@ -22,7 +22,7 @@ class Command(BaseCommand):
         print()
         
         try:
-            msg_text = input('Please enter the message text: ')
+            msg_text = input('Please enter the message text (4096 characters limit): ')
                     
             if len(msg_text.strip()) == 0:
                 raise Exception('Empty message is not allowed')
@@ -58,7 +58,7 @@ class Command(BaseCommand):
                 
                 self.stdout.write(self.style.SUCCESS(f'\nSending to {student.real_name} from group {student.group}'))
             
-            print('\nMessage was sent successfully\n')
+            self.stdout.write(self.style.SUCCESS('\nMessage was sent successfully\n'))
         except Exception as e:
             print(e)
         

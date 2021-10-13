@@ -44,7 +44,7 @@ class Command(BaseCommand):
                 print(e)
                 return
         else:
-            print('\nYou can close your poll manually by close_poll command')
+            self.stdout.write(self.style.WARNING('\nYou can close your poll manually by close_poll command'))
         
         current_question = input('\nPlease, enter poll question: ')
         
@@ -61,9 +61,9 @@ class Command(BaseCommand):
             choice = input(f'Is option correct? (y/n)')
             if choice == 'y':
                 current_correct_options.append(i)
-                print('Marked as correct')
+                self.stdout.write(self.style.SUCCESS('Marked as correct'))
             else:
-                print('Marked as wrong')
+                self.stdout.write(self.style.ERROR('Marked as wrong'))
         
         if len(current_correct_options) == 0:
             print('At least 1 correct option is required')
