@@ -1,0 +1,67 @@
+{% extends 'bot_admin/base.html' %}
+
+{% block title %}
+Poll Group
+{% endblock %}
+
+{% block content %}
+    <h1 class="header">Poll group (id: {{ group_id }})
+        {% if is_closed %}
+            <span class="closed-status">closed</span> 
+        {% else %}
+            <span class="opened-status">opened</span> 
+        {% endif %}
+    </h1>
+
+    <h3>Question: </h3>
+    <h4>{{ question }}</h4>
+
+    <h3>Options: </h3>
+    <ol start="0">
+        {% for option in options %}
+            {% with text=option.0 is_correct=option.1 %}
+                <li>{{ text }} 
+                    {% if is_correct %}
+                        <span class="correct">correct</span>
+                    {% else %}
+                        <span class="wrong">wrong</span>
+                    {% endif %}
+                </li>
+            {% endwith %}
+        {% endfor %}
+    </ol>
+
+    <h3>Current polls:</h3>
+
+    {% if polls|length > 0 %}
+        {% for poll in polls %}
+            <div class="list-item">
+                <div class="list-item-content">
+                    <p>
+                        <span class="field-name">Student group: </span> {{ poll.student.group }};
+                        <span>
+                            <span class="field-name" style="margin-left: 20px;">Student real name: </span>{{ poll.student.real_name }}
+                        </span>
+                        <span>
+                            <span class="field-name" style="margin-left: 20px;">Open period: </span>{{ poll.open_period }}s
+                        </span>
+                        <span>
+                            <span class="field-name" style="margin-left: 20px;">Selected options: </span>{{ poll.selected_options }}
+                        </span>
+                        <span>
+                            <span class="field-name" style="margin-left: 20px;">Status: </span>
+                            {% if poll.is_student_passed %}
+                                <span class="opened-status">PASSED</span>
+                            {% else %}
+                                <span class="closed-status">FAIL</span>
+                            {% endif %}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <h1 class="empty-message">No polls :(</h1>
+    {% endif %}
+    
+{% endblock %}

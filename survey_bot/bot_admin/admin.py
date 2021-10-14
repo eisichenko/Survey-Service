@@ -1,5 +1,4 @@
 from django.contrib import admin
-
 from .models import *
 
 
@@ -24,6 +23,7 @@ class MessageAdmin(admin.ModelAdmin):
                     'is_closed',
                     'created_at')
 
+
 @admin.register(TelegramPoll)
 class PollAdmin(admin.ModelAdmin):
     list_display = ('student', 
@@ -33,6 +33,7 @@ class PollAdmin(admin.ModelAdmin):
                     'question', 
                     'created_at', 
                     'option_number',
+                    'options_text',
                     'selected_options',
                     'correct_options',
                     'is_student_passed',

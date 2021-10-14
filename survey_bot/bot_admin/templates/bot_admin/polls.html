@@ -1,0 +1,41 @@
+{% extends 'bot_admin/base.html' %}
+
+{% block title %}
+Polls
+{% endblock %}
+
+{% block content %}
+    <h1 class="header">Polls</h1>
+
+    {% if poll_groups|length > 0 %}
+        {% for poll_item in poll_groups %}
+            {% with poll=poll_item.0 is_closed=poll_item.1 %}
+                <div class="list-item">
+                    <div class="list-item-content">
+                        <p>
+                            <span class="field-name">Group ID: </span> {{ poll.poll_group_id }};
+                            <span>
+                                <span class="field-name" style="margin-left: 20px;">Creation time (UTC): </span>{{ poll.created_at }}
+                            </span>
+                            <span>
+                                <span class="field-name" style="margin-left: 20px;">Status: </span>
+                                {% if is_closed %}
+                                    <span class="closed-status">CLOSED</span>
+                                {% else %}
+                                    <span class="opened-status">OPENED</span>
+                                {% endif %}
+
+                                <a href="{% url 'poll_group' poll.poll_group_id %}" class="more">MORE</a>
+                            </span>
+                        </p>
+                        <p>
+                            <span class="field-name">Question: </span>{{ poll.question }}
+                        </p>
+                    </div>
+                </div>
+            {% endwith %}
+        {% endfor %}
+    {% else %}
+        <h1 class="empty-message">No polls :(</h1>
+    {% endif %}
+{% endblock %}

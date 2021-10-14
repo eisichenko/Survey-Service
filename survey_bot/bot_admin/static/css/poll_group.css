@@ -1,0 +1,9 @@
+ol {
+    font-weight: bold;
+    margin-bottom: 50px;
+}
+
+ol li {
+    margin: 10px 0;
+    color: #000;
+}

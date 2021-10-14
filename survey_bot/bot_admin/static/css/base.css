@@ -1,0 +1,136 @@
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+nav {
+    background-color: #333;
+    position: fixed;
+    text-align: center;
+    top: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+nav ul {
+    color: #fff;
+    list-style: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline-block;
+    margin: 0;
+    margin-right: -4px;
+    padding: 0;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0;
+    padding: 100% 30px;
+    font-size: 1.2rem;
+    transition: 250ms;
+}
+
+nav ul li a.active {
+    background-color: #777;
+}
+
+nav ul li a:hover {
+    color: #000;
+    background-color: #fff;
+    transition: 250ms;
+}
+
+
+.content {
+    margin-top: 80px;
+    margin-left: 70px;
+    margin-right: 70px;
+    word-wrap: break-word;
+    -ms-word-wrap: break-word;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.list-item {
+    border-radius: 15px;
+    border: 1px solid #000;
+    margin-bottom: 5px;
+    background-color: #efefef;
+    word-wrap: break-word;
+    -ms-word-wrap: break-word;
+    transition: 150ms;
+}
+
+.list-item:hover {
+    background-color: #ddd;
+    transition: 150ms;
+}
+
+.list-item-content {
+    margin: 5px 20px;
+    position: relative;
+}
+
+.list-item-content p {
+    font-weight: 300;
+}
+
+span.field-name {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+span.closed-status {
+    color: #f00;
+    font-style: italic;
+    font-weight: bold;
+}
+
+span.opened-status {
+    color: rgb(47, 190, 47);
+    font-style: italic;
+    font-weight: bold;
+}
+
+span.correct {
+    color: rgb(47, 190, 47);
+    margin-left: 10px;
+}
+
+span.wrong {
+    color: #f00;
+    margin-left: 10px;
+}
+
+a.more {
+    text-decoration: none;
+    color: rgb(0, 132, 255);
+    position: absolute;
+    top: 0;
+    right: 0;
+    text-decoration: underline;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 5px 10px;
+    border-radius: 15px;
+    transition: 100ms;
+}
+
+a.more:hover {
+    color: #fff;
+    background-color: #000;
+    transition: 100ms;
+}
+
+.empty-message {
+    color: #f00;
+    text-align: center;
+    margin-top: 50px;
+}

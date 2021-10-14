@@ -21,8 +21,8 @@ class Command(BaseCommand):
     
     def handle(self, *args, **kwargs):
         request = Request(
-            connect_timeout=0.5,
-            read_timeout=1.0
+            connect_timeout=2.0,
+            read_timeout=2.0
         )
         
         bot = Bot(

@@ -10,8 +10,8 @@ class Command(BaseCommand):
     
     def handle(self, *args, **kwargs):
         request = Request(
-            connect_timeout=0.5,
-            read_timeout=1.0
+            connect_timeout=2.0,
+            read_timeout=2.0
         )
         
         bot = Bot(
@@ -112,7 +112,8 @@ class Command(BaseCommand):
                 poll_group_id=next_id,
                 option_number=option_number,
                 question=current_question,
-                open_period=current_open_period
+                open_period=current_open_period,
+                options_text=current_options
             )
             
             self.stdout.write(self.style.SUCCESS(f'\nSending to {student.real_name} from group {student.group}'))

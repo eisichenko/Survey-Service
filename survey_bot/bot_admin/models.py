@@ -135,6 +135,11 @@ class TelegramPoll(models.Model):
         null=False
     )
     
+    options_text = models.JSONField(
+        verbose_name='Options text',
+        null=False
+    )
+    
     is_manually_closed = models.BooleanField(
         verbose_name='Is poll manually closed',
         default=False
