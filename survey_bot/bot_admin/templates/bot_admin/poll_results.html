@@ -1,0 +1,44 @@
+{% extends 'bot_admin/base.html' %}
+
+{% block title %}
+Poll Results
+{% endblock %}
+
+{% block content %}
+    <h1 class="header">Poll results</h1>
+
+    <form action="{% url 'send_poll_results' %}" method="post">
+        {% csrf_token %}
+        <div class="form-buttons">
+            <input class="purple-button" type="submit" value="Send results to students">
+        </div>
+
+        {% if correct_answers|length > 0 %}
+            {% for student, res_item in correct_answers.items %}
+                {% with correct_number=res_item.0 percentage=res_item.1 %}
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <p>
+                                <span class="field-name">
+                                    Group: </span> {{ student.group }};
+                                <span>
+
+                                <span class="field-name" style="margin-left: 20px;">
+                                    Real name: </span>{{ student.real_name }};
+                                </span>
+
+                                <span>
+                                    <span class="field-name" style="margin-left: 20px;">Correct answers: </span>
+                                    {{ correct_number }} / {{ total_questions }}
+                                    <span style="margin-left: 10px;">({{ percentage }}%)</span>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        {% else %}
+            <h1 class="empty-message">No selected polls :(</h1>
+        {% endif %}
+    </form>
+{% endblock %}

@@ -1,11 +1,11 @@
 {% extends 'bot_admin/base.html' %}
 
 {% block title %}
-Students
+Report
 {% endblock %}
 
 {% block content %}
-    <h1 class="header">Students</h1>
+    <h1 class="header">Results were successfully sent to:</h1>
 
     {% if students|length > 0 %}
         {% for student in students %}
@@ -15,19 +15,15 @@ Students
                         <span class="field-name">
                             Group: </span> {{ student.group }};
                         <span>
-                        
-                        <span class="field-name" style="margin-left: 20px;">
-                            Real name: </span>{{ student.real_name }}
-                        </span>
 
                         <span class="field-name" style="margin-left: 20px;">
-                            Telegram username: </span>{{ student.telegram_username }}
+                            Real name: </span>{{ student.real_name }}
                         </span>
                     </p>
                 </div>
             </div>
         {% endfor %}
     {% else %}
-        <h1 class="empty-message">No students :(</h1>
+        <h1 class="empty-message"> No students were found :(</h1>
     {% endif %}
 {% endblock %}

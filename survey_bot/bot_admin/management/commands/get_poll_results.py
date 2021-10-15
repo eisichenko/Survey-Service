@@ -34,7 +34,7 @@ class Command(BaseCommand):
                         
             self.stdout.write(self.style.SUCCESS('\nResults were received successfully!\n'))
             
-            for student, correct_number in sorted(correct_answers.items(), key=lambda item: (item[0].group, item[0].real_name)):
+            for student, correct_number in sorted(correct_answers.items(), key=lambda item: (item[0].group, item[0].real_name.lower())):
                 student: Student
                 
                 print(f'Name: {student.real_name}; Group: {student.group}; ' + 

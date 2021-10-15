@@ -13,6 +13,11 @@ Poll Group
         {% endif %}
     </h1>
 
+    <div class="buttons">
+        <a href="{% url 'close_poll_group' group_id %}" onclick="return confirm('Are you sure?')" class="close">Close group</a>
+        <a href="{% url 'delete_poll_group' group_id %}" onclick="return confirm('Are you sure?')" class="delete">Delete group</a>
+    </div>
+
     <h3>Question: </h3>
     <h4>{{ question }}</h4>
 
@@ -30,7 +35,7 @@ Poll Group
             {% endwith %}
         {% endfor %}
     </ol>
-
+    <hr>
     <h3>Current polls:</h3>
 
     {% if polls|length > 0 %}
@@ -43,7 +48,12 @@ Poll Group
                             <span class="field-name" style="margin-left: 20px;">Student real name: </span>{{ poll.student.real_name }}
                         </span>
                         <span>
-                            <span class="field-name" style="margin-left: 20px;">Open period: </span>{{ poll.open_period }}s
+                            <span class="field-name" style="margin-left: 20px;">Open period: </span>
+                            {% if poll.open_period == None %}
+                                {{ poll.open_period }}
+                            {% else %}
+                                {{ poll.open_period }}s
+                            {% endif %}
                         </span>
                         <span>
                             <span class="field-name" style="margin-left: 20px;">Selected options: </span>{{ poll.selected_options }}
