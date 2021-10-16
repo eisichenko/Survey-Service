@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.db.models.functions import Lower
-from telegram import Bot
+from telegram import Bot, ParseMode
 from telegram.utils.request import Request
 from .models import *
 from .forms import *
@@ -55,13 +55,13 @@ def poll_group(request, group_id):
 
 
 def close_poll_group(request, group_id):
-    request = Request(
+    bot_request = Request(
         connect_timeout=2.0,
         read_timeout=2.0
     )
         
     bot = Bot(
-        request=request,
+        request=bot_request,
         token=os.getenv('TOKEN')
     )
     
@@ -88,13 +88,13 @@ def close_poll_group(request, group_id):
 
 
 def delete_poll_group(request, group_id):
-    request = Request(
+    bot_request = Request(
         connect_timeout=2.0,
         read_timeout=2.0
     )
     
     bot = Bot(
-        request=request,
+        request=bot_request,
         token=os.getenv('TOKEN')
     )
     
@@ -222,7 +222,117 @@ def send_poll_results(request):
 
 
 def questions(request):
-    return render(request, 'bot_admin/questions.html')
+    group_ids = TelegramMessage.objects.all().order_by('-message_group_id').values_list('message_group_id').distinct()
+    
+    message_groups = []
+
+    for i in range(len(group_ids)):
+        group_id = group_ids[i]
+        question: TelegramMessage = TelegramMessage.objects.filter(message_group_id=group_id[0]).first()
+        if question != None:
+            message_groups.append([question, question.is_closed, i])
+
+    context = {
+        'message_groups': message_groups
+    }
+
+    return render(request, 'bot_admin/questions.html', context=context)
+
+
+def message_group(request, group_id):
+    questions = TelegramMessage.objects.filter(message_group_id=group_id).order_by('student__group', 'student__real_name').all()
+    
+    if questions != None and len(questions) > 0:
+        context = {
+            'group_id': group_id,
+            'questions': questions,
+            'question_text': questions[0].text,
+            'is_closed': questions[0].is_closed
+        }
+        
+        return render(request, 'bot_admin/question_group.html', context=context)
+    else:
+        return HttpResponseRedirect(reverse('questions'))
+
+
+def close_message_group(request, group_id):
+    bot_request = Request(
+        connect_timeout=2.0,
+        read_timeout=2.0
+    )
+        
+    bot = Bot(
+        request=bot_request,
+        token=os.getenv('TOKEN')
+    )
+    
+    questions = TelegramMessage.objects.filter(message_group_id=group_id).all()
+    
+    if questions != None and len(questions) > 0:
+        for question in questions:
+            try:
+                question: TelegramMessage
+                
+                question.is_closed = True
+                question.save()
+                
+                if question.answer != None:
+                    msg_text = ('<b><i>[CLOSED]</i></b>\n\n<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question.text + 
+                        '\n\n<b><i>Your answer</i></b>:\n\n' + question.answer)
+                else:
+                    msg_text = ('<b><i>[CLOSED]</i></b>\n\n<b><i>Question</i></b>:\n\n' + question.text)
+
+
+                bot.edit_message_text(
+                    chat_id=question.student.telegram_chat_id,
+                    message_id=question.telegram_message_id,
+                    text=msg_text,
+                    parse_mode=ParseMode.HTML
+                )
+                
+                bot.edit_message_reply_markup(
+                    chat_id=question.student.telegram_chat_id,
+                    message_id=question.telegram_message_id,
+                    reply_markup=None
+                )
+            except Exception as e:
+                print(e)
+    
+        return HttpResponseRedirect(reverse('message_group', args=(group_id,)))
+    else:
+        return HttpResponseRedirect(reverse('questions'))
+
+
+def delete_message_group(request, group_id):
+    bot_request = Request(
+        connect_timeout=2.0,
+        read_timeout=2.0
+    )
+        
+    bot = Bot(
+        request=bot_request,
+        token=os.getenv('TOKEN')
+    )
+    
+    questions = TelegramMessage.objects.filter(message_group_id=group_id).all()
+    
+    if questions != None and len(questions) > 0:
+        for question in questions:
+            try:
+                question: TelegramMessage
+                                
+                bot.delete_message(
+                    chat_id=question.student.telegram_chat_id,
+                    message_id=question.telegram_message_id
+                )
+            except Exception as e:
+                print(e)
+                
+        questions.delete()
+    
+        return HttpResponseRedirect(reverse('message_group', args=(group_id,)))
+    else:
+        return HttpResponseRedirect(reverse('questions'))
 
 
 def students(request):

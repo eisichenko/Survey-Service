@@ -51,12 +51,15 @@ class Command(BaseCommand):
             for student in students:
                 student: Student
                 
-                bot.send_message(
-                    chat_id=student.telegram_chat_id,
-                    text=msg_text
-                )
-                
-                self.stdout.write(self.style.SUCCESS(f'\nSending to {student.real_name} from group {student.group}'))
+                try:
+                    bot.send_message(
+                        chat_id=student.telegram_chat_id,
+                        text=msg_text
+                    )
+                    
+                    self.stdout.write(self.style.SUCCESS(f'\nSending to {student.real_name} from group {student.group}'))
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f'ERROR: ({student}) {e}'))
             
             self.stdout.write(self.style.SUCCESS('\nMessage was sent successfully\n'))
         except Exception as e:

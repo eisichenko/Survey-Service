@@ -93,30 +93,33 @@ class Command(BaseCommand):
         for student in students:
             student: Student
             
-            message: Message = bot.send_poll(
-                chat_id=student.telegram_chat_id,
-                question=current_question,
-                options=current_options,
-                type=Poll.REGULAR,
-                allows_multiple_answers=True,
-                is_anonymous=False,
-                open_period=current_open_period,
-                explanation=None
-            )
-            
-            telegram_poll: TelegramPoll = TelegramPoll.objects.create(
-                student=student,
-                telegram_message_id=message.message_id,
-                telegram_poll_id=message.poll.id,
-                correct_options=current_correct_options,
-                poll_group_id=next_id,
-                option_number=option_number,
-                question=current_question,
-                open_period=current_open_period,
-                options_text=current_options
-            )
-            
-            self.stdout.write(self.style.SUCCESS(f'\nSending to {student.real_name} from group {student.group}'))
+            try:
+                message: Message = bot.send_poll(
+                    chat_id=student.telegram_chat_id,
+                    question=current_question,
+                    options=current_options,
+                    type=Poll.REGULAR,
+                    allows_multiple_answers=True,
+                    is_anonymous=False,
+                    open_period=current_open_period,
+                    explanation=None
+                )
+                
+                telegram_poll: TelegramPoll = TelegramPoll.objects.create(
+                    student=student,
+                    telegram_message_id=message.message_id,
+                    telegram_poll_id=message.poll.id,
+                    correct_options=current_correct_options,
+                    poll_group_id=next_id,
+                    option_number=option_number,
+                    question=current_question,
+                    open_period=current_open_period,
+                    options_text=current_options
+                )
+                
+                self.stdout.write(self.style.SUCCESS(f'\nSending to {student.real_name} from group {student.group}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'ERROR: ({student}) {e}'))
         
         print('\nPoll was successfully sent')
         

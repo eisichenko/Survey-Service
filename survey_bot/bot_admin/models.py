@@ -36,7 +36,7 @@ class Student(models.Model):
         verbose_name='Student'
     
     def __str__(self):
-        return f'Student({self.telegram_username}, group: {self.group})'
+        return f'Student(telegram_username: {self.telegram_username}, group: {self.group}, real_name: {self.real_name})'
     
 
 class TelegramMessage(models.Model):

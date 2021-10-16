@@ -6,4 +6,48 @@ Questions
 
 {% block content %}
     <h1 class="header">Questions</h1>
+
+    <form action="{% url 'poll_results' %}" method="post">
+        {% csrf_token %}
+        <div class="form-buttons">
+            <input class="green-button" type="submit" value="Get selected results">
+        </div>
+        
+        {% if message_groups|length > 0 %}
+            {% for message_item in message_groups %}
+                {% with message=message_item.0 is_closed=message_item.1 index=message_item.2 %}
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <p>
+                                <span class="field-name">
+                                    <input type="checkbox" value="{{ index }}" name="choices">
+                                    Group ID: </span> {{ message.message_group_id }};
+                                <span>
+                                
+                                <span class="field-name" style="margin-left: 20px;">
+                                    Creation time (UTC): </span>{{ message.created_at }}
+                                </span>
+
+                                <span>
+                                    <span class="field-name" style="margin-left: 20px;">Status: </span>
+                                    {% if is_closed %}
+                                        <span class="closed-status">CLOSED</span>
+                                    {% else %}
+                                        <span class="opened-status">OPENED</span>
+                                    {% endif %}
+
+                                    <a href="{% url 'message_group' message.message_group_id %}" class="more">MORE</a>
+                                </span>
+                            </p>
+                            <p>
+                                <span class="field-name">Question: </span>{{ message.text }}
+                            </p>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        {% else %}
+            <h1 class="empty-message">No questions :(</h1>
+        {% endif %}
+    </form>
 {% endblock %}

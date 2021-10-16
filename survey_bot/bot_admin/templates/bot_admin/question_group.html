@@ -1,0 +1,54 @@
+{% extends 'bot_admin/base.html' %}
+
+{% block title %}
+Message Group
+{% endblock %}
+
+{% block content %}
+    <h1 class="header">Message group (id: {{ group_id }})
+        {% if is_closed %}
+            <span class="closed-status">closed</span> 
+        {% else %}
+            <span class="opened-status">opened</span> 
+        {% endif %}
+    </h1>
+
+    <div class="buttons">
+        <a href="{% url 'close_message_group' group_id %}" onclick="return confirm('Are you sure?')" class="close">Close group</a>
+        <a href="{% url 'delete_message_group' group_id %}" onclick="return confirm('Are you sure?')" class="delete">Delete group</a>
+    </div>
+
+    <h3>Question: </h3>
+    <h4>{{ question_text }}</h4>
+
+    <hr>
+    <h3>Current questions:</h3>
+
+    {% if questions|length > 0 %}
+        {% for question in questions %}
+            <div class="list-item">
+                <div class="list-item-content">
+                    <p>
+                        <span class="field-name">Student group: </span> {{ question.student.group }};
+                        <span>
+                            <span class="field-name" style="margin-left: 20px;">Student real name: </span>{{ question.student.real_name }}
+                        </span>
+                        <span>
+                            <span class="field-name" style="margin-left: 20px;">Answer text: </span>
+                            
+                            {% if question.answer == None %}
+                                <span class="closed-status">{{ question.answer }}</span>
+                            {% else %}
+                                {{ question.answer }}
+                            {% endif %}
+                            
+                        </span>
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <h1 class="empty-message">No questions :(</h1>
+    {% endif %}
+    
+{% endblock %}
