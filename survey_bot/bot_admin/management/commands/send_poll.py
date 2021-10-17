@@ -57,7 +57,13 @@ class Command(BaseCommand):
             return
         
         for i in range(option_number):
-            current_options.append(input(f'\nEnter the option #{i + 1}: '))
+            option = input(f'\nEnter the option #{i + 1}: ')
+            if len(option) > 0:
+                current_options.append(option)
+            else:
+                self.stdout.write(self.style.ERROR('ERROR: option cannot be empty'))
+                return
+                
             choice = input(f'Is option correct? (y/n)')
             if choice == 'y':
                 current_correct_options.append(i)
@@ -66,30 +72,48 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR('Marked as wrong'))
         
         if len(current_correct_options) == 0:
-            print('At least 1 correct option is required')
+            self.stdout.write(self.style.ERROR('At least 1 correct option is required'))
             return
             
         print('\nPoll group ID: ' + str(next_id) + '\n')
         
-        choice = input('Would you like to specify student usernames (you can find them by "list_students" command)? (y/n) ')
-            
+        choice = input('Would you like to specify GROUPS to send (you can find them by "list_students" command)? (y/n) ')
+        
         if choice == 'y':
             students = []
             
-            usernames = input('\nEnter student usernames divided by space who will receive message: ').split()
-
-            for username in usernames:
-                student: Student = Student.objects.filter(
-                    telegram_username=username
-                ).first()
+            groups = input('\nEnter student GROUPS divided by space which will receive poll: ').split()
+            
+            print()
+            
+            for group in groups:
+                group_students = Student.objects.filter(group=group).all()
                 
-                if student == None:
-                    self.stdout.write(self.style.ERROR(f'Student {username} was not found'))
+                if group_students != None and len(group_students) > 0:
+                    students.extend(group_students)
                 else:
-                    students.append(student)
+                    self.stdout.write(self.style.ERROR(f'Group {group} was not found'))
         else:
-            students = Student.objects.all()
-        
+            choice = input('Would you like to specify student USERNAMES (you can find them by "list_students" command)? (y/n) ')
+            
+            if choice == 'y':
+                students = []
+                
+                usernames = input('\nEnter student USERNAMES divided by space who will receive poll: ').split()
+
+                for username in usernames:
+                    student: Student = Student.objects.filter(
+                        telegram_username=username
+                    ).first()
+                    
+                    if student == None:
+                        self.stdout.write(self.style.ERROR(f'Student {username} was not found'))
+                    else:
+                        students.append(student)
+            else:
+                students = Student.objects.all()
+            
+
         for student in students:
             student: Student
             
@@ -121,6 +145,6 @@ class Command(BaseCommand):
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f'ERROR: ({student}) {e}'))
         
-        print('\nPoll was successfully sent')
+        self.stdout.write(self.style.SUCCESS('\nPoll was successfully sent'))
         
         print()

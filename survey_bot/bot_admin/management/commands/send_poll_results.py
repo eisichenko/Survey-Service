@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from telegram import Bot, Poll, Message
+from telegram import Bot, ParseMode
 from telegram.utils.request import Request
 from bot_admin.models import *
 import os
@@ -56,17 +56,18 @@ class Command(BaseCommand):
                 print(f'Sending to student Name: {student.real_name}; Group: {student.group}; ' + 
                       f'Correct: {correct_number}/{total_polls} ({correct_number / float(total_polls) * 100.0 :0.2f}%)\n')
                 
-                text = f'Your result in polls:\n\n'
+                text = f'<b><i>Your result in polls:</i></b>\n\n'
                 
                 for i in range(len(poll_questions)):
                     text += f'#{i + 1} Question: "{poll_questions[i]}"\n'
                 
                 text += '\n'
-                text += f'Correct answers: {correct_number}/{total_polls} ({correct_number / float(total_polls) * 100.0 :0.2f}%)\n'
+                text += f'<b><i>Correct answers:</i></b> {correct_number}/{total_polls} ({correct_number / float(total_polls) * 100.0 :0.2f}%)\n'
                 
                 bot.send_message(
                     chat_id=student.telegram_chat_id,
-                    text=text
+                    text=text,
+                    parse_mode=ParseMode.HTML
                 )
             
         except Exception as e:

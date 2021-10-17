@@ -198,17 +198,18 @@ def send_poll_results(request):
             for student, correct_number in correct_answers.items():
                 student: Student
                 
-                text = f'Your result in polls:\n\n'
+                text = f'<b><i>Your result in polls:</i></b>\n\n'
                 
                 for i in range(len(poll_questions)):
                     text += f'#{i + 1} Question: "{poll_questions[i]}"\n'
                 
                 text += '\n'
-                text += f'Correct answers: {correct_number}/{total_questions} ({correct_number / float(total_questions) * 100.0 : .2f}%)\n'
+                text += f'<b><i>Correct answers:</i></b> {correct_number}/{total_questions} ({correct_number / float(total_questions) * 100.0 : .2f}%)\n'
                 
                 bot.send_message(
                     chat_id=student.telegram_chat_id,
-                    text=text
+                    text=text,
+                    parse_mode=ParseMode.HTML
                 )
             
             context = {
@@ -217,7 +218,7 @@ def send_poll_results(request):
             
             return render(request, 'bot_admin/send_results_report.html', context=context)
         else:
-            pass
+            return HttpResponseRedirect(reverse('polls'))
     return HttpResponseRedirect(reverse('polls'))
 
 

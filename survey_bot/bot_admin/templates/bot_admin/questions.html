@@ -10,7 +10,7 @@ Questions
     <form action="{% url 'poll_results' %}" method="post">
         {% csrf_token %}
         <div class="form-buttons">
-            <input class="green-button" type="submit" value="Get selected results">
+            <input class="green-button" type="submit" value="Download selected results">
         </div>
         
         {% if message_groups|length > 0 %}
