@@ -7,10 +7,10 @@ Questions
 {% block content %}
     <h1 class="header">Questions</h1>
 
-    <form action="{% url 'poll_results' %}" method="post">
+    <form action="{% url 'download_question_answers' %}" method="post">
         {% csrf_token %}
         <div class="form-buttons">
-            <input class="green-button" type="submit" value="Download selected results">
+            <input class="green-button" type="submit" value="Download selected results (size up to 4GB)">
         </div>
         
         {% if message_groups|length > 0 %}

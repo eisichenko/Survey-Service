@@ -38,10 +38,10 @@ edit_markup = ReplyKeyboardMarkup(keyboard=edit_keyboard,
                                   one_time_keyboard=False, 
                                   resize_keyboard=True)
 
-main_keyboard = [[SHOW_PROFILE_KEYBOARD_VALUE, 
-                  EDIT_PROFILE_KEYBOARD_VALUE, 
-                  HELP_KEYBOARD_VALUE,
-                  SIGN_UP_KEYBOARD_VALUE]]
+main_keyboard = [[SIGN_UP_KEYBOARD_VALUE,
+                  HELP_KEYBOARD_VALUE],
+                 [SHOW_PROFILE_KEYBOARD_VALUE, 
+                  EDIT_PROFILE_KEYBOARD_VALUE]]
 main_markup = ReplyKeyboardMarkup(keyboard=main_keyboard, 
                                   one_time_keyboard=False, 
                                   resize_keyboard=True)

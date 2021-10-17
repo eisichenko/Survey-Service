@@ -1,4 +1,8 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
+from django.conf.urls import url
+from django.views.static import serve
 from . import views
 
 
@@ -14,5 +18,6 @@ urlpatterns = [
     path('questions/<int:group_id>', views.message_group, name='message_group'),
     path('questions/close/<int:group_id>/', views.close_message_group, name='close_message_group'),
     path('questions/delete/<int:group_id>/', views.delete_message_group, name='delete_message_group'),
+    path('questions/answers/download/',  views.download_question_answers, name='download_question_answers'),
     path('students/', views.students, name='students')
 ]

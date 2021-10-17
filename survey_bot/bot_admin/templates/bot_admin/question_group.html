@@ -25,27 +25,33 @@ Message Group
     <h3>Current questions:</h3>
 
     {% if questions|length > 0 %}
-        {% for question in questions %}
-            <div class="list-item">
-                <div class="list-item-content">
-                    <p>
-                        <span class="field-name">Student group: </span> {{ question.student.group }};
-                        <span>
-                            <span class="field-name" style="margin-left: 20px;">Student real name: </span>{{ question.student.real_name }}
-                        </span>
-                        <span>
-                            <span class="field-name" style="margin-left: 20px;">Answer text: </span>
-                            
-                            {% if question.answer == None %}
-                                <span class="closed-status">{{ question.answer }}</span>
-                            {% else %}
-                                {{ question.answer }}
-                            {% endif %}
-                            
-                        </span>
-                    </p>
+        {% for question_item in questions %}
+            {% with question=question_item.0 image_number=question_item.1 %}
+                <div class="list-item">
+                    <div class="list-item-content">
+                        <p>
+                            <span class="field-name">Student group: </span> {{ question.student.group }};
+                            <span>
+                                <span class="field-name" style="margin-left: 20px;">Student real name: </span>{{ question.student.real_name }}
+                            </span>
+                            <span>
+                                <span class="field-name" style="margin-left: 20px;">Answer text: </span>
+                                
+                                {% if question.answer == None %}
+                                    <span class="closed-status">{{ question.answer }}</span>
+                                {% else %}
+                                    {{ question.answer }}
+                                {% endif %}
+                                
+                            </span>
+                            <span>
+                                <span class="field-name" style="margin-left: 20px;">Number of images: </span>
+                                {{ image_number }}
+                            </span>
+                        </p>
+                    </div>
                 </div>
-            </div>
+            {% endwith %}    
         {% endfor %}
     {% else %}
         <h1 class="empty-message">No questions :(</h1>
