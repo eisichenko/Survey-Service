@@ -1,5 +1,7 @@
 {% extends 'bot_admin/base.html' %}
 
+{% load static %}
+
 {% block title %}
 Questions
 {% endblock %}
@@ -7,10 +9,21 @@ Questions
 {% block content %}
     <h1 class="header">Questions</h1>
 
+    {% if server_message != None %}
+        <h2 id="server-message" class="server-message">{{ server_message }}</h2>
+    {% else %}
+        <h2 id="server-message" class="server-message" style="display: none;">{{ server_message }}</h2>
+    {% endif %}
+
+    <div id="download-div"  class="download-div">
+        <h2 class="download-message">Loading telegram files. Please, don't close the tab</h2>
+        <img class="loading-gif" src="{% static 'images/loading.gif' %}">
+    </div>
+
     <form action="{% url 'download_question_answers' %}" method="post">
         {% csrf_token %}
         <div class="form-buttons">
-            <input class="green-button" type="submit" value="Download selected results (size up to 4GB)">
+            <input id="download-button" class="green-button" type="submit" value="Download selected results (size up to 4GB)">
         </div>
         
         {% if message_groups|length > 0 %}

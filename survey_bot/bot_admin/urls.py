@@ -18,6 +18,6 @@ urlpatterns = [
     path('questions/<int:group_id>', views.message_group, name='message_group'),
     path('questions/close/<int:group_id>/', views.close_message_group, name='close_message_group'),
     path('questions/delete/<int:group_id>/', views.delete_message_group, name='delete_message_group'),
-    path('questions/answers/download/',  views.download_question_answers, name='download_question_answers'),
+    path('questions/answers/download/',  views.questions, name='download_question_answers'),
     path('students/', views.students, name='students')
 ]

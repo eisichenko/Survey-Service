@@ -1,8 +1,6 @@
 from django.shortcuts import render
 from django.urls import reverse
-from django.http import HttpResponseRedirect, Http404, HttpResponse, StreamingHttpResponse
-from wsgiref.util import FileWrapper
-from django.conf import settings
+from django.http import HttpResponseRedirect, HttpResponse
 from django.db.models.functions import Lower
 from telegram import Bot, ParseMode
 from telegram.utils.request import Request
@@ -10,6 +8,7 @@ from .models import *
 from .forms import *
 import os
 from .helpers.InMemoryZip import *
+from django.utils.timezone import localtime, now
 
 
 def home(request):
@@ -226,6 +225,78 @@ def send_poll_results(request):
 
 
 def questions(request):
+    if request.method == 'POST' and 'choices' in request.POST:
+        bot_request = Request(
+            connect_timeout=5.0,
+            read_timeout=5.0
+        )
+            
+        bot = Bot(
+            request=bot_request,
+            token=os.getenv('TOKEN')
+        )
+        
+        zip_file: InMemoryZip = InMemoryZip()
+        
+        ALL_ANSWERS_DIRECTORY = 'answers ' + datetime.now().strftime('%d.%m.%Y %H:%M:%S') + ' (utc)'
+        QUESTION_FILENAME = 'question.txt'
+        
+        checkbox_id_choices = [int(i) for i in request.POST.getlist('choices')]
+        group_ids = TelegramMessage.objects.all().order_by('-message_group_id').values_list('message_group_id').distinct()
+        
+        group_id_choices = [group_ids[i][0] for i in checkbox_id_choices]
+        
+        for message_group_id in group_id_choices:
+            questions = TelegramMessage.objects.filter(message_group_id=message_group_id).all()
+            
+            if questions != None and len(questions) > 0:
+                question_directory_name = f'Question (group id: {message_group_id})'
+                zip_file.append(os.path.join(
+                    question_directory_name,
+                    QUESTION_FILENAME),
+                questions[0].text)
+                
+                for question in questions:
+                    question: TelegramMessage
+                    current_student: Student = question.student
+                    
+                    student_directory_name = f'{current_student.group}.{current_student.real_name}'
+                    
+                    if question.answer == None or len(question.answer) == 0:
+                        zip_file.append(os.path.join(
+                            question_directory_name,
+                            student_directory_name,
+                            f'empty.{student_directory_name}.txt'),
+                        '')
+                    else:
+                        zip_file.append(os.path.join(
+                            question_directory_name,
+                            student_directory_name,
+                            f'{student_directory_name}.txt'),
+                        question.answer)
+
+                    image_ids: list = question.image_ids
+                    
+                    if image_ids != None:
+                        for id in image_ids:
+                            zip_file.append(os.path.join(
+                                question_directory_name,
+                                student_directory_name,
+                                f'{student_directory_name} image #{image_ids.index(id)}'),
+                            bot.get_file(id).download_as_bytearray())
+        
+        response = HttpResponse(zip_file.read(), content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename={ALL_ANSWERS_DIRECTORY}.zip'
+        response['Content-Length'] = zip_file.in_memory_zip.tell()
+        response['Set-Cookie'] = 'fileDownload=true; Path=/'
+        
+        return response
+    
+    server_message = None
+    
+    if request.method == 'POST' and 'choices' not in request.POST:
+        server_message = 'No chosen questions'
+    
     group_ids = TelegramMessage.objects.all().order_by('-message_group_id').values_list('message_group_id').distinct()
     
     message_groups = []
@@ -238,7 +309,8 @@ def questions(request):
 
     context = {
         'message_groups': message_groups,
-        'path': './qwe.png'
+        'path': './qwe.png',
+        'server_message': server_message
     }
 
     return render(request, 'bot_admin/questions.html', context=context)
@@ -338,80 +410,6 @@ def delete_message_group(request, group_id):
         return HttpResponseRedirect(reverse('message_group', args=(group_id,)))
     else:
         return HttpResponseRedirect(reverse('questions'))
-
-
-def download_question_answers(request):
-    if request.method == 'POST' and 'choices' in request.POST:
-        bot_request = Request(
-            connect_timeout=5.0,
-            read_timeout=5.0
-        )
-            
-        bot = Bot(
-            request=bot_request,
-            token=os.getenv('TOKEN')
-        )
-        
-        zip_file: InMemoryZip = InMemoryZip()
-        
-        ALL_ANSWERS_DIRECTORY = 'answers ' + datetime.now().strftime('%d.%m.%Y %H:%M:%S')
-        QUESTION_FILENAME = 'question.txt'
-        
-        checkbox_id_choices = [int(i) for i in request.POST.getlist('choices')]
-        group_ids = TelegramMessage.objects.all().order_by('-message_group_id').values_list('message_group_id').distinct()
-        
-        group_id_choices = [group_ids[i][0] for i in checkbox_id_choices]
-        
-        for message_group_id in group_id_choices:
-            questions = TelegramMessage.objects.filter(message_group_id=message_group_id).all()
-            
-            if questions != None and len(questions) > 0:
-                question_directory_name = f'Question (group id: {message_group_id})'
-                zip_file.append(os.path.join(
-                    ALL_ANSWERS_DIRECTORY,
-                    question_directory_name,
-                    QUESTION_FILENAME),
-                questions[0].text)
-                
-                for question in questions:
-                    question: TelegramMessage
-                    current_student: Student = question.student
-                    
-                    student_directory_name = f'{current_student.group}.{current_student.real_name}'
-                    
-                    if question.answer == None or len(question.answer) == 0:
-                        zip_file.append(os.path.join(
-                            ALL_ANSWERS_DIRECTORY,
-                            question_directory_name,
-                            student_directory_name,
-                            f'empty.{student_directory_name}.txt'),
-                        '')
-                    else:
-                        zip_file.append(os.path.join(
-                            ALL_ANSWERS_DIRECTORY,
-                            question_directory_name,
-                            student_directory_name,
-                            f'{student_directory_name}.txt'),
-                        question.answer)
-
-                    image_ids: list = question.image_ids
-                    
-                    if image_ids != None:
-                        for id in image_ids:
-                            zip_file.append(os.path.join(
-                                ALL_ANSWERS_DIRECTORY,
-                                question_directory_name,
-                                student_directory_name,
-                                f'{student_directory_name} image #{image_ids.index(id)}'),
-                            bot.get_file(id).download_as_bytearray())
-        
-        response = HttpResponse(zip_file.read(), content_type='application/zip')
-        response['Content-Disposition'] = f'attachment; filename={ALL_ANSWERS_DIRECTORY}.zip'
-        response['Content-Length'] = zip_file.in_memory_zip.tell()
-        
-        return response
-    
-    return HttpResponseRedirect(reverse('questions'))
 
 
 def students(request):

@@ -28,4 +28,32 @@ $(document).ready(function() {
     $(min_href).addClass("active");
 
     console.log(min_href)
+
+    $('#download-button').click(function() {
+        if ($('input[name=choices]').is(':checked')) {
+            if (confirm('Downloading telegram files may take some time.\n\nAre you sure to start downloading?')){
+                $('#download-div').css('display', 'block');
+                $('#server-message').css('display', 'none');
+
+                $.fileDownload($(this).prop('href'))
+                    .done(function () {
+                        console.log("OK");
+                        $('#download-div').css('display', 'none');
+                        $('#server-message').css('display', 'block');
+                        $('#server-message').text('Answers were downloaded successfully!');
+                        $('#server-message').css('color', '#2fbe2f');
+                    })
+                    .fail(function () { 
+                        console.log("FAIL");
+                        $('#download-div').css('display', 'none');
+                        $('#server-message').css('display', 'block');
+                        $('#server-message').text('Downloading answers was failed :(');
+                        $('#server-message').css('color', '#f00');
+                    });
+            
+                return true;
+            }
+            return false;
+        }
+    })
 })
