@@ -6,4 +6,10 @@ Home
 
 {% block content %}
     <h1 class="header">Welcome to Web Survey Bot!</h1>
+
+    <div class="home-buttons">
+        <a href="{% url 'send_poll' %}" class="send-poll">Send Poll</a>
+        <a href="{% url 'send_question' %}" class="send-question">Send Question</a>
+        <a href="{% url 'send_message' %}" class="send-message">Send Message</a>
+    </div>
 {% endblock %}

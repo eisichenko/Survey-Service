@@ -245,3 +245,66 @@ input[type="checkbox"] {
     background-color: #fff;
     color:rgb(161, 51, 180);
 }
+
+a.send-poll {
+    text-decoration: none;
+    background-color: rgb(58, 119, 47);
+    font-weight: 600;
+    font-size: 1.2rem;
+    padding: 5px 10px;
+    border-radius: 15px;
+    transition: 100ms;
+    margin-right: 15px;
+    border: 2px solid rgb(58, 119, 47);
+    color: #fff;
+}
+
+a.send-poll:hover {
+    transition: 100ms;
+    background-color: #fff;
+    color: rgb(58, 119, 47);
+}
+
+a.send-question {
+    text-decoration: none;
+    background-color: rgb(161, 51, 180);
+    font-weight: 600;
+    font-size: 1.2rem;
+    padding: 5px 10px;
+    border-radius: 15px;
+    transition: 100ms;
+    margin-right: 15px;
+    border: 2px solid rgb(161, 51, 180);
+    color: #fff;
+}
+
+a.send-question:hover {
+    transition: 100ms;
+    background-color: #fff;
+    color: rgb(161, 51, 180);
+}
+
+a.send-message {
+    text-decoration: none;
+    background-color: #00f;
+    font-weight: 600;
+    font-size: 1.2rem;
+    padding: 5px 10px;
+    border-radius: 15px;
+    transition: 100ms;
+    border: 2px solid #00f;
+    color: #fff;
+}
+
+a.send-message:hover {
+    transition: 100ms;
+    background-color: #fff;
+    color: #00f
+}
+
+.home-buttons {
+    text-align: center;
+    height: 100%;
+    width: 100%;
+    margin-top: 100px;
+}

@@ -46,22 +46,27 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.style.WARNING('\nYou can close your poll manually by close_poll command'))
         
-        current_question = input('\nPlease, enter poll question: ')
-        
         try:
+            current_question = input('\nPlease, enter poll question (up to 300 characters): ')
+            
+            if len(current_question) == 0 or len(current_question) > 300:
+                raise Exception('Poll question valid length from 1 to 300 characters')
+            
             option_number = int(input('\nPlease, enter number of options from 2 to 10: '))
             if option_number < 2 or option_number > 10:
                 raise Exception('Invalid option number')
         except Exception as e:
-            print(e)
+            self.stdout.write(self.style.ERROR(e))
             return
+        
+        self.stdout.write(self.style.WARNING('\nOption text limit is 100 characters'))
         
         for i in range(option_number):
             option = input(f'\nEnter the option #{i + 1}: ')
-            if len(option) > 0:
+            if len(option) > 0 and len(option) <= 100:
                 current_options.append(option)
             else:
-                self.stdout.write(self.style.ERROR('ERROR: option cannot be empty'))
+                self.stdout.write(self.style.ERROR('ERROR: invalid option length'))
                 return
                 
             choice = input(f'Is option correct? (y/n)')

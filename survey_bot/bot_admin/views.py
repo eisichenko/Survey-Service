@@ -491,3 +491,24 @@ def delete_student(request, username):
         student.delete()
     
     return HttpResponseRedirect(reverse('students'))
+
+
+def send_poll(request):
+    context = {
+        
+    }
+    return render(request, 'bot_admin/send_poll.html', context=context)
+
+
+def send_question(request):
+    context = {
+        
+    }
+    return render(request, 'bot_admin/send_question.html', context=context)
+
+
+def send_message(request):
+    context = {
+        
+    }
+    return render(request, 'bot_admin/send_message.html', context=context)
