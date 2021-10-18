@@ -10,6 +10,7 @@ nav {
     top: 0;
     width: 100%;
     overflow: hidden;
+    z-index: 100;
 }
 
 nav ul {

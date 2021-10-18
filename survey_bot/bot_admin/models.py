@@ -1,6 +1,6 @@
 from time import strftime
 from django.db import models
-from django.db.models.deletion import PROTECT
+from django.db.models.deletion import CASCADE, PROTECT
 from datetime import datetime, timedelta
 
 

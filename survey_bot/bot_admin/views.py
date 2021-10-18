@@ -420,3 +420,58 @@ def students(request):
     }
     
     return render(request, 'bot_admin/students.html', context=context)
+
+
+def delete_student(request, username):
+    student: Student = Student.objects.get(telegram_username=username)
+    
+    if student != None:
+        bot_request = Request(
+            connect_timeout=2.0,
+            read_timeout=2.0
+        )
+            
+        bot = Bot(
+            request=bot_request,
+            token=os.getenv('TOKEN')
+        )
+        
+        polls = TelegramPoll.objects.filter(student=student).all()
+        messages = TelegramMessage.objects.filter(student=student).all()
+        
+        if polls != None and len(polls) > 0:
+            for poll in polls:
+                poll: TelegramPoll
+                
+                try:
+                    bot.delete_message(
+                        chat_id=student.telegram_chat_id,
+                        message_id=poll.telegram_message_id
+                    )
+                except:
+                    pass
+                
+            polls.delete()
+            
+        if messages != None and len(messages) > 0:
+            for message in messages:
+                message: TelegramMessage
+                
+                try:
+                    bot.delete_message(
+                        chat_id=student.telegram_chat_id,
+                        message_id=message.telegram_message_id
+                    )
+                except:
+                    pass
+            messages.delete()
+        
+        bot.send_message(
+            chat_id=student.telegram_chat_id,
+            text='<b><i>Your account was deleted by instructor</i></b>',
+            parse_mode=ParseMode.HTML
+        )
+        
+        student.delete()
+    
+    return HttpResponseRedirect(reverse('students'))

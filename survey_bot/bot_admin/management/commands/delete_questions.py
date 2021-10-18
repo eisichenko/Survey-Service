@@ -40,10 +40,13 @@ class Command(BaseCommand):
                     question: TelegramMessage
                     student: Student = question.student
                     
-                    bot.delete_message(
-                        chat_id=student.telegram_chat_id,
-                        message_id=question.telegram_message_id
-                    )
+                    try:
+                        bot.delete_message(
+                            chat_id=student.telegram_chat_id,
+                            message_id=question.telegram_message_id
+                        )
+                    except:
+                        pass
                         
                 questions.delete()
                         

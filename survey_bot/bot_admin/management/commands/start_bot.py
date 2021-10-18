@@ -2,7 +2,8 @@ from django.core.management.base import BaseCommand
 from telegram import (
     Update, 
     ReplyKeyboardMarkup,
-    ParseMode
+    ParseMode,
+    Bot
 )
 from telegram.ext import (
     CallbackContext, 
@@ -11,8 +12,9 @@ from telegram.ext import (
     CommandHandler, 
     MessageHandler,
     PollAnswerHandler,
-    CallbackQueryHandler
+    CallbackQueryHandler,    
 )
+from telegram.utils.request import Request
 from telegram.ext import ConversationHandler
 from bot_admin.models import *
 import os
@@ -308,6 +310,29 @@ def show_profile_info(update: Update, context: CallbackContext):
 
 @log_errors
 def receive_poll_answer(update: Update, context: CallbackContext):
+    request = Request(
+        connect_timeout=2.0,
+        read_timeout=2.0
+    )
+    
+    bot = Bot(
+        request=request,
+        token=os.getenv('TOKEN')
+    )
+    
+    if not Student.objects.filter(telegram_username=update.effective_user.username).exists():
+        bot.send_message(
+            chat_id=update.poll_answer.user.id,
+            text='Answer was not recorded as you are not found in database. Please signup by /signup commmand.'
+        )
+        return
+    
+    if not TelegramPoll.objects.filter(telegram_poll_id=update.poll_answer.poll_id).exists():
+        bot.send_message(
+            chat_id=update.poll_answer.user.id,
+            text='You can\'t answer to this poll, as it is not in database any more.'
+        )
+        return
     
     poll: TelegramPoll = TelegramPoll.objects.get(
         telegram_poll_id=update.poll_answer.poll_id
@@ -328,14 +353,20 @@ def receive_poll_answer(update: Update, context: CallbackContext):
 
 
 @log_errors
-def send_question_answer(update: Update, context: CallbackContext):
-    print(context.args)
-    update.message.reply_text(text='/send_answer 1 2')
-
-
-@log_errors
-def receive_answer_operation(update: Update, context: CallbackContext):
+def receive_answer_operation(update: Update, context: CallbackContext):    
     query = update.callback_query
+    
+    if not Student.objects.filter(telegram_username=query.from_user.username).exists():
+        query.message.reply_text(
+            text='You are not found in database. Please signup by /signup commmand.'
+        )
+        return
+    
+    if not TelegramMessage.objects.filter(telegram_message_id=query.message.message_id).exists():
+        query.message.reply_text(
+            text='You can\'t answer to this question, as it is not in database any more.'
+        )
+        return
     
     query.answer()
     
@@ -346,9 +377,11 @@ def receive_answer_operation(update: Update, context: CallbackContext):
         
     elif query.data == EDIT_DATA:
         context.user_data[EDITING_ANSWER_MESSAGE_ID_DATA] = query.message.message_id
+        
+    question: TelegramMessage = TelegramMessage.objects.get(telegram_message_id=query.message.message_id)
     
     query.message.reply_text(
-        text=('Please, send your answer by text or image' + 
+        text=(f'Please, send your answer to question "{question.text}" by text or image' + 
                 '\n\n• Telegram text message limit - up to 4096 characters' + 
                 '\n\n• Telegram message with images limit - up to 10 images, up to 1024 characters'+ 
                 '\n\n• Send /cancel_question to cancel sending answer')
@@ -558,7 +591,6 @@ class Command(BaseCommand):
         dispatcher.add_handler(signup_conversation_handler)
         dispatcher.add_handler(CommandHandler('help', help))
         dispatcher.add_handler(CommandHandler('show_profile', show_profile_info))
-        dispatcher.add_handler(CommandHandler('send_answer', send_question_answer))
         dispatcher.add_handler(PollAnswerHandler(receive_poll_answer))
         dispatcher.add_handler(CallbackQueryHandler(receive_answer_operation))
         dispatcher.add_handler(MessageHandler(Filters.photo | Filters.text, unknown_command))

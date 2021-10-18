@@ -19,5 +19,6 @@ urlpatterns = [
     path('questions/close/<int:group_id>/', views.close_message_group, name='close_message_group'),
     path('questions/delete/<int:group_id>/', views.delete_message_group, name='delete_message_group'),
     path('questions/answers/download/',  views.questions, name='download_question_answers'),
-    path('students/', views.students, name='students')
+    path('students/', views.students, name='students'),
+    path('students/delete/<str:username>', views.delete_student, name='delete_student')
 ]

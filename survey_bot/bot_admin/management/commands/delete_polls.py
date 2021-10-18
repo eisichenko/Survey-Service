@@ -40,10 +40,13 @@ class Command(BaseCommand):
                     poll: TelegramPoll
                     student: Student = poll.student
                     
-                    bot.delete_message(
-                        chat_id=student.telegram_chat_id,
-                        message_id=poll.telegram_message_id
-                    )
+                    try:
+                        bot.delete_message(
+                            chat_id=student.telegram_chat_id,
+                            message_id=poll.telegram_message_id
+                        )
+                    except:
+                        pass
                         
                 polls.delete()
                         
