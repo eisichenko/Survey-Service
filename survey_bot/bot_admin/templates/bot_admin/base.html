@@ -14,12 +14,17 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.fileDownload/1.4.2/jquery.fileDownload.min.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
 
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/poll_group.css' %}">
 
     <script defer src="{% static 'js/base.js' %}"></script>
+
+    {% block scripts %}
+    {% endblock %}
 
 </head>
 <body>

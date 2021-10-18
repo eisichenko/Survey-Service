@@ -4,6 +4,51 @@
 Poll Group
 {% endblock %}
 
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+        var ctx = document.getElementById('myChart');
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [{% for option in options %}'{{option.2}}',{% endfor %}],
+                datasets: [{
+                    label: 'Number of answers',
+                    data: [{% for option in options %}'{{option.3}}',{% endfor %}],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    })
+</script>
+{% endblock %}
+
 {% block content %}
     <h1 class="header">Poll group (id: {{ group_id }})
         {% if is_closed %}
@@ -24,18 +69,25 @@ Poll Group
     <h3>Options: </h3>
     <ol start="0">
         {% for option in options %}
-            {% with text=option.0 is_correct=option.1 %}
+            {% with text=option.0 is_correct=option.1 answer_number=option.3 percentage=option.4 %}
                 <li>{{ text }} 
                     {% if is_correct %}
                         <span class="correct">correct</span>
                     {% else %}
                         <span class="wrong">wrong</span>
                     {% endif %}
+                    <span style="margin-left: 15px;">{{ percentage }}% </span>
+                    <span style="margin-left: 15px; margin-right: 10px;"> ({{ answer_number }}/{{total_answers}})</span>
+                    answers
                 </li>
             {% endwith %}
         {% endfor %}
     </ol>
-    <hr>
+
+    <div style="margin-bottom: 50px;">
+        <canvas id="myChart" width="400" height="100" ></canvas>
+    </div>
+
     <h3>Current polls:</h3>
 
     {% if polls|length > 0 %}

@@ -40,15 +40,31 @@ def poll_group(request, group_id):
         options = []
         
         for option in polls[0].options_text:
-            is_correct = polls[0].options_text.index(option) in polls[0].correct_options
-            options.append([option, is_correct])
+            index = polls[0].options_text.index(option)
+            is_correct = index in polls[0].correct_options
+            # text, is_correct, label, answer number, percentage
+            options.append([option, is_correct, f'#{index}', 0, '0'])
+            
+        total_answers = len(polls)
+        
+        for poll in polls:
+            poll: TelegramPoll
+            selected_answers = poll.selected_options
+            
+            if selected_answers != None:
+                for i in selected_answers:
+                    options[i][3] += 1
+        
+        for option in options:
+            option[4] = f'{(option[3] / float(total_answers) * 100.0) : .2f}'
         
         context = {
             'group_id': group_id,
             'polls': polls,
             'options': options,
             'question': polls[0].question,
-            'is_closed': polls[0].is_closed()
+            'is_closed': polls[0].is_closed(),
+            'total_answers': total_answers
         }
         
         return render(request, 'bot_admin/poll_group.html', context=context)
@@ -423,7 +439,7 @@ def students(request):
 
 
 def delete_student(request, username):
-    student: Student = Student.objects.get(telegram_username=username)
+    student: Student = Student.objects.filter(telegram_username=username).first()
     
     if student != None:
         bot_request = Request(
