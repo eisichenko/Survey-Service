@@ -39,22 +39,26 @@ class Command(BaseCommand):
                     else:
                         self.stdout.write(self.style.ERROR(f'Group {group} was not found'))
             else:
-                choice = input('\nWould you like to specify student USERNAMES to delete (you can find them by "list_students" command)? (y/n) ')
+                choice = input('\nWould you like to specify student IDs to delete (you can find them by "list_students" command)? (y/n) ')
                 
                 if choice == 'y':
                     students = []
                     
-                    usernames = input('\nEnter student USERNAMES divided by space who will be deleted: ').split()
+                    ids = input('\nEnter student IDs divided by space who will be deleted: ').split()
 
-                    for username in usernames:
-                        student: Student = Student.objects.filter(
-                            telegram_username=username
-                        ).first()
-                        
-                        if student == None:
-                            self.stdout.write(self.style.ERROR(f'Student {username} was not found'))
-                        else:
-                            students.append(student)
+                    for id in ids:
+                        try:
+                            id = int(id)
+                            student: Student = Student.objects.filter(
+                                id=id
+                            ).first()
+                            
+                            if student == None:
+                                self.stdout.write(self.style.ERROR(f'Student ID {id} was not found'))
+                            else:
+                                students.append(student)
+                        except Exception as e:
+                            self.stdout.write(self.style.ERROR(e))
                 else:
                     choice = input('\nDo you want to delete ALL students? (y/n) ')
                     if choice == 'y':
@@ -97,11 +101,14 @@ class Command(BaseCommand):
                             pass
                     messages.delete()
                 
-                bot.send_message(
-                    chat_id=student.telegram_chat_id,
-                    text='<b><i>Your account was deleted by instructor</i></b>',
-                    parse_mode=ParseMode.HTML
-                )
+                try:
+                    bot.send_message(
+                        chat_id=student.telegram_chat_id,
+                        text='<b><i>Your account was deleted by instructor</i></b>',
+                        parse_mode=ParseMode.HTML
+                    )
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f'ERROR: {student} {e}'))
                 
                 student.delete()
                 

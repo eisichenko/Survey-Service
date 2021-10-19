@@ -25,6 +25,13 @@ Questions
         <div class="form-buttons">
             <input id="download-button" class="green-button" type="submit" value="Download selected results (size up to 4GB)">
         </div>
+
+        <div class="content-choice">
+            <input id="text-files-checkbox" type="checkbox" value="text-files" name="content-choice" checked>
+            <label for="text-files-checkbox" style="margin-right: 20px;">Text files</label>
+            <input id="images-checkbox" type="checkbox" value="images" name="content-choice" checked>
+            <label for="images-checkbox">Image files</label>
+        </div>
         
         {% if message_groups|length > 0 %}
             {% for message_item in message_groups %}

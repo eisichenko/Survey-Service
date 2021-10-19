@@ -21,10 +21,10 @@ Students
                         </span>
 
                         <span class="field-name" style="margin-left: 20px;">
-                            Telegram username: </span>{{ student.telegram_username }}
+                            ID: </span>{{ student.id }}
                         </span>
                         <span>
-                            <a href="{% url 'delete_student' student.telegram_username %}" class="more" onclick="return confirm('Are you sure?')">DELETE</a>
+                            <a href="{% url 'delete_student' student.id %}" class="more" onclick="return confirm('Are you sure?')">DELETE</a>
                         </span>
                     </p>
                 </div>

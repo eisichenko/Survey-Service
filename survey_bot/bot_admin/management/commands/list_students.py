@@ -15,7 +15,7 @@ class Command(BaseCommand):
             student: Student
             print(f'Group: {student.group}; ' + 
                   f'Real name: {student.real_name}; ' + 
-                  f'Username: {student.telegram_username}\n')
+                  f'ID: {student.id}\n')
         
         print()
         

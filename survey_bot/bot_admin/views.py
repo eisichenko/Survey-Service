@@ -2,13 +2,14 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.db.models.functions import Lower
-from telegram import Bot, ParseMode
+from telegram import Bot, ParseMode, Message, Poll
 from telegram.utils.request import Request
 from .models import *
 from .forms import *
 import os
 from .helpers.InMemoryZip import *
-from django.utils.timezone import localtime, now
+from .management.commands.send_question import answer_markup
+import traceback
 
 
 def home(request):
@@ -242,6 +243,10 @@ def send_poll_results(request):
 
 def questions(request):
     if request.method == 'POST' and 'choices' in request.POST:
+        content_choices = request.POST.getlist('content-choice')
+        text_answers_required = 'text-files' in content_choices
+        image_answers_required = 'images' in content_choices
+        
         bot_request = Request(
             connect_timeout=5.0,
             read_timeout=5.0
@@ -278,28 +283,30 @@ def questions(request):
                     
                     student_directory_name = f'{current_student.group}.{current_student.real_name}'
                     
-                    if question.answer == None or len(question.answer) == 0:
-                        zip_file.append(os.path.join(
-                            question_directory_name,
-                            student_directory_name,
-                            f'empty.{student_directory_name}.txt'),
-                        '')
-                    else:
-                        zip_file.append(os.path.join(
-                            question_directory_name,
-                            student_directory_name,
-                            f'{student_directory_name}.txt'),
-                        question.answer)
-
-                    image_ids: list = question.image_ids
-                    
-                    if image_ids != None:
-                        for id in image_ids:
+                    if text_answers_required:
+                        if question.answer == None or len(question.answer) == 0:
                             zip_file.append(os.path.join(
                                 question_directory_name,
                                 student_directory_name,
-                                f'{student_directory_name} image #{image_ids.index(id)}'),
-                            bot.get_file(id).download_as_bytearray())
+                                f'empty.{student_directory_name}.txt'),
+                            '')
+                        else:
+                            zip_file.append(os.path.join(
+                                question_directory_name,
+                                student_directory_name,
+                                f'{student_directory_name}.txt'),
+                            question.answer)
+
+                    image_ids: list = question.image_ids
+                    
+                    if image_answers_required:
+                        if image_ids != None:
+                            for id in image_ids:
+                                zip_file.append(os.path.join(
+                                    question_directory_name,
+                                    student_directory_name,
+                                    f'{student_directory_name} image #{image_ids.index(id)}.jpg'),
+                                bot.get_file(id).download_as_bytearray())
         
         response = HttpResponse(zip_file.read(), content_type='application/zip')
         response['Content-Disposition'] = f'attachment; filename={ALL_ANSWERS_DIRECTORY}.zip'
@@ -438,8 +445,8 @@ def students(request):
     return render(request, 'bot_admin/students.html', context=context)
 
 
-def delete_student(request, username):
-    student: Student = Student.objects.filter(telegram_username=username).first()
+def delete_student(request, id):
+    student: Student = Student.objects.filter(id=id).first()
     
     if student != None:
         bot_request = Request(
@@ -494,21 +501,326 @@ def delete_student(request, username):
 
 
 def send_poll(request):
-    context = {
+    server_message = None
+    
+    if request.method == 'POST':
+        try:
+            form = SendPollForm(request.POST)
+            if form.is_valid():
+                print(form.cleaned_data, flush=True)
+                
+                options = []
+                MAX_OPTION_NUMBER = 10
+                
+                # gather options
+                
+                for i in range(MAX_OPTION_NUMBER):
+                    option_text_key = f'option{i}'
+                    is_correct_key = f'is_correct_{i}'
+                    
+                    option_text = form.cleaned_data[option_text_key]
+                    is_correct = form.cleaned_data[is_correct_key]
+                    
+                    if len(option_text) > 0:    
+                        options.append([option_text, is_correct])
+                    elif is_correct:
+                        server_message = f'Option {i} is empty, but correct'
+                        return render(request, 'bot_admin/send_poll.html', context={'form': form, 'server_message': server_message})
+                
+                print()
+                print(options)
+                
+                # options validation
+                
+                if len(options) > 10 or len(options) < 2:
+                    server_message = f'Option number should be from 2 to 10 (now {len(options)})'
+                    return render(request, 'bot_admin/send_poll.html', context={'form': form, 'server_message': server_message})
+
+                correct_number = 0
+                for option_item in options:
+                    if option_item[1] == True:
+                        correct_number += 1
+                        
+                if correct_number == 0:
+                    server_message = f'Correct options number should be from 1 to {len(options)} (now {correct_number})'
+                    return render(request, 'bot_admin/send_poll.html', context={'form': form, 'server_message': server_message})
+                
+                # specifying students
+                
+                student_id = request.POST['student']
+                group = ''
+                
+                if len(student_id) == 0 and len(request.POST['group']) > 0:
+                    group = request.POST['group']
+                
+                students = []
+                
+                if len(student_id) > 0:
+                    student_id = int(student_id)
+                    student = Student.objects.filter(id=student_id).first()
+                    if student != None:
+                        students.append(student)
+                        server_message = f'Poll was sent to student {student.real_name} from group {student.group}'
+                    else:
+                        server_message = f'Student id {student_id} was not found'
+                elif len(group) > 0:
+                    group_students = Student.objects.filter(group=group).all()
+                    if group_students != None and len(group_students) > 0:
+                        students.extend(group_students)
+                        server_message = f'Poll was sent to group {group}'
+                    else:
+                        server_message = f'Group {group} was not found'
+                else:
+                    students = Student.objects.all()
+                    server_message = f'Poll was sent to all students'
+                
+                # generate group id
+                polls = TelegramPoll.objects.all()
+                max_poll: TelegramPoll = polls.order_by('-poll_group_id').first()
         
+                if max_poll != None:
+                    next_id = max_poll.poll_group_id + 1
+                else:
+                    next_id = 0
+                
+                # sending
+                poll_question_text = form.cleaned_data['question']
+                option_texts = [option_item[0] for option_item in options]
+                correct_options_indexes = [i for i in range(len(options)) if options[i][1] == True]
+                
+                current_open_period = None
+                
+                if form.cleaned_data['open_period'] != None:
+                    try:
+                        current_open_period = int(form.cleaned_data['open_period'])
+                    except Exception as e:
+                        server_message = f'Invalid open period {form.cleaned_data["open_period"]}'
+                        return render(request, 'bot_admin/send_poll.html', context={'form': form, 'server_message': server_message})
+                
+                print()
+                print(poll_question_text)
+                print(option_texts)
+                print(correct_options_indexes)
+                
+                bot_request = Request(
+                    connect_timeout=2.0,
+                    read_timeout=2.0
+                )
+                    
+                bot = Bot(
+                    request=bot_request,
+                    token=os.getenv('TOKEN')
+                )
+                
+                for student in students:
+                    student: Student
+                    
+                    try:
+                        message: Message = bot.send_poll(
+                            chat_id=student.telegram_chat_id,
+                            question=poll_question_text,
+                            options=option_texts,
+                            type=Poll.REGULAR,
+                            allows_multiple_answers=True,
+                            is_anonymous=False,
+                            open_period=current_open_period,
+                            explanation=None
+                        )
+                        
+                        telegram_poll: TelegramPoll = TelegramPoll.objects.create(
+                            student=student,
+                            telegram_message_id=message.message_id,
+                            telegram_poll_id=message.poll.id,
+                            correct_options=correct_options_indexes,
+                            poll_group_id=next_id,
+                            option_number=len(options),
+                            question=poll_question_text,
+                            open_period=current_open_period,
+                            options_text=option_texts
+                        )
+                    except Exception as e:
+                        print(f'ERROR: {student} {e}')
+            else:
+                server_message = 'Invalid form'
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
+            server_message = 'Unexpected error'
+    else:
+        form = SendPollForm()
+    
+    context = {
+        'form' : form,
+        'server_message': server_message
     }
     return render(request, 'bot_admin/send_poll.html', context=context)
 
 
 def send_question(request):
-    context = {
+    server_message = None
+    
+    if request.method == 'POST':
+        form = SendQuestionForm(request.POST)
+        if form.is_valid():
+            try:
+                student_id = request.POST['student']
+                group = ''
+                
+                print(form.cleaned_data)
+                
+                if len(student_id) == 0 and len(request.POST['group']) > 0:
+                    group = request.POST['group']
+                
+                question_text = form.cleaned_data['text']
+                
+                bot_request = Request(
+                    connect_timeout=2.0,
+                    read_timeout=2.0
+                )
+                    
+                bot = Bot(
+                    request=bot_request,
+                    token=os.getenv('TOKEN'))
+                
+                students = []
+                
+                if len(student_id) > 0:
+                    student_id = int(student_id)
+                    student = Student.objects.filter(id=student_id).first()
+                    if student != None:
+                        students.append(student)
+                        server_message = f'Question was sent to student {student.real_name} from group {student.group}'
+                    else:
+                        server_message = f'Student id {student_id} was not found'
+                elif len(group) > 0:
+                    group_students = Student.objects.filter(group=group).all()
+                    if group_students != None and len(group_students) > 0:
+                        students.extend(group_students)
+                        server_message = f'Question was sent to group {group}'
+                    else:
+                        server_message = f'Group {group} was not found'
+                else:
+                    students = Student.objects.all()
+                    server_message = f'Question was sent to all students'
+                
+                if len(students) > 0:
+                    telegram_messages = TelegramMessage.objects.all()
         
+                    max_message: TelegramMessage = telegram_messages.order_by('-message_group_id').first()
+                    
+                    if max_message != None:
+                        next_id = str(int(max_message.message_group_id) + 1)
+                    else:
+                        next_id = str(0)
+                    
+                    for student in students:
+                        student: Student
+                        
+                        try:
+                            message: Message = bot.send_message(
+                                chat_id=student.telegram_chat_id,
+                                text=('<b><i>Question</i></b>:\n\n' + question_text),
+                                reply_markup=answer_markup,
+                                parse_mode=ParseMode.HTML
+                            )
+                            
+                            telegram_message: TelegramMessage = TelegramMessage.objects.create(
+                                student=student,
+                                telegram_message_id=message.message_id,
+                                text=question_text,
+                                message_group_id=next_id,
+                                is_closed=False
+                            )
+                        except Exception as e:
+                            print(f'ERROR: {student} {e}')
+            except Exception as e:
+                print(e)
+                traceback.print_exc()
+                server_message = 'Unexpected error occured'
+        else:
+            server_message = 'Invalid form'
+    else:
+        form = SendQuestionForm()
+
+    context = {
+        'form': form,
+        'server_message': server_message
     }
+    
     return render(request, 'bot_admin/send_question.html', context=context)
 
 
 def send_message(request):
+    server_message = None
+    
+    if request.method == 'POST':
+        form = SendMessageForm(request.POST)
+        if form.is_valid():
+            try:
+                student_id = request.POST['student']
+                group = ''
+                
+                print(form.cleaned_data)
+                
+                if len(student_id) == 0 and len(request.POST['group']) > 0:
+                    group = request.POST['group']
+                
+                msg_text = form.cleaned_data['msg_text']
+                
+                bot_request = Request(
+                    connect_timeout=2.0,
+                    read_timeout=2.0
+                )
+                    
+                bot = Bot(
+                    request=bot_request,
+                    token=os.getenv('TOKEN'))
+                
+                students = []
+                
+                if len(student_id) > 0:
+                    student_id = int(student_id)
+                    student = Student.objects.filter(id=student_id).first()
+                    if student != None:
+                        students.append(student)
+                        server_message = f'Message was sent to student {student.real_name} from group {student.group}'
+                    else:
+                        server_message = f'Student id {student_id} was not found'
+                elif len(group) > 0:
+                    group_students = Student.objects.filter(group=group).all()
+                    if group_students != None and len(group_students) > 0:
+                        students.extend(group_students)
+                        server_message = f'Message was sent to group {group}'
+                    else:
+                        server_message = f'Group {group} was not found'
+                else:
+                    students = Student.objects.all()
+                    server_message = f'Message was sent to all students'
+                
+                if len(students) > 0:
+                    for student in students:
+                        student: Student
+                        
+                        try:
+                            bot.send_message(
+                                chat_id=student.telegram_chat_id,
+                                text=f'<b><i>Message from the instructor:</i></b>\n\n{msg_text}',
+                                parse_mode=ParseMode.HTML
+                            )
+                        except Exception as e:
+                            print(f'ERROR: {student} {e}')
+            except Exception as e:
+                print(e)
+                traceback.print_exc()
+                server_message = 'Unexpected error occured'
+        else:
+            server_message = 'Invalid form'
+    else:
+        form = SendMessageForm()
+
     context = {
-        
+        'form': form,
+        'server_message': server_message
     }
+    
     return render(request, 'bot_admin/send_message.html', context=context)

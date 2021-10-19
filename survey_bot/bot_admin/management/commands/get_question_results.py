@@ -98,7 +98,7 @@ class Command(BaseCommand):
                                     ALL_ANSWERS_DIRECTORY,
                                     question_directory_name,
                                     student_directory_name,
-                                    f'{student_directory_name} image #{image_ids.index(id)}'
+                                    f'{student_directory_name} image #{image_ids.index(id)}.jpg'
                                 ))
                     
             self.stdout.write(self.style.SUCCESS('\nResults were received successfully!\n'))

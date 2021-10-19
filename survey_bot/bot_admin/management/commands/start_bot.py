@@ -75,7 +75,7 @@ def start(update: Update, context: CallbackContext):
     if (Student.objects.filter(telegram_id=update.effective_user.id).exists()):
         current_student: Student = Student.objects.get(telegram_id=update.effective_user.id)
         update.message.reply_text(
-            text=f'Welcome back, {current_student.telegram_username}!',
+            text=f'Welcome back, {current_student.real_name}!',
             reply_markup=main_markup
             
         )
@@ -210,6 +210,8 @@ def get_signup_typed_group(update: Update, context: CallbackContext) -> int:
     logging.info(f'{update.effective_user.username} typed {res}')
     
     if (is_valid_group(res)):
+        chat_id = update.message.chat.id
+        
         context.user_data[GROUP_DATA] = res
         
         update.message.reply_text(
@@ -221,9 +223,8 @@ def get_signup_typed_group(update: Update, context: CallbackContext) -> int:
         group = res
         
         current_student: Student = Student.objects.create(
-            telegram_id=update.effective_user.id,
-            telegram_username=update.effective_user.username,
-            telegram_chat_id=update.effective_chat.id,
+            telegram_id=chat_id,
+            telegram_chat_id=chat_id,
             real_name=real_name,
             group=group
         )
@@ -258,7 +259,7 @@ def sign_up(update: Update, context: CallbackContext):
             del context.user_data[GROUP_DATA]
         
         update.message.reply_text(
-            text='Please send your real name (100 characters limit)',
+            text='You can cancel operation by /cancel command\n\nPlease send your real name (100 characters limit)',
             reply_markup=main_markup
         )
         
@@ -293,8 +294,7 @@ def show_profile_info(update: Update, context: CallbackContext):
     if (Student.objects.filter(telegram_id=update.effective_user.id).exists()):
         current_student: Student = Student.objects.get(telegram_id=update.effective_user.id)
         
-        text = (f'Telegram username: {current_student.telegram_username}\n\n' + 
-                f'Real name: {current_student.real_name}\n\n' + 
+        text = (f'Real name: {current_student.real_name}\n\n' + 
                 f'Group: {current_student.group}\n\n')
         
         update.message.reply_text(
@@ -320,7 +320,7 @@ def receive_poll_answer(update: Update, context: CallbackContext):
         token=os.getenv('TOKEN')
     )
     
-    if not Student.objects.filter(telegram_username=update.effective_user.username).exists():
+    if not Student.objects.filter(telegram_id=update.effective_user.id).exists():
         bot.send_message(
             chat_id=update.poll_answer.user.id,
             text='Answer was not recorded as you are not found in database. Please signup by /signup commmand.'
@@ -356,7 +356,7 @@ def receive_poll_answer(update: Update, context: CallbackContext):
 def receive_answer_operation(update: Update, context: CallbackContext):    
     query = update.callback_query
     
-    if not Student.objects.filter(telegram_username=query.from_user.username).exists():
+    if not Student.objects.filter(telegram_id=query.from_user.id).exists():
         query.message.reply_text(
             text='You are not found in database. Please signup by /signup commmand.'
         )

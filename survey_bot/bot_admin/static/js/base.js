@@ -56,4 +56,12 @@ $(document).ready(function() {
             return false;
         }
     })
+
+    $('#id_group').change(function (e) { 
+        $('#id_student').val('')
+    });
+
+    $('#id_student').change(function (e) { 
+        $('#id_group').val('')
+    });
 })

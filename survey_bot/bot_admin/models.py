@@ -9,13 +9,7 @@ class Student(models.Model):
         verbose_name='Telegram ID',
         unique=True
     )
-    
-    telegram_username = models.TextField(
-        verbose_name='Telegram username',
-        null=False,
-        unique=True
-    )
-    
+        
     telegram_chat_id = models.PositiveBigIntegerField(
         verbose_name='Telegram chat ID',
         null=False,
@@ -24,19 +18,21 @@ class Student(models.Model):
     
     real_name = models.TextField(
         verbose_name='Real name',
-        null=False
+        null=False,
+        max_length=100
     )
     
     group = models.TextField(
         verbose_name='Group',
-        null=False
+        null=False,
+        max_length=100
     )
     
     class Meta:
         verbose_name='Student'
     
     def __str__(self):
-        return f'Student(telegram_username: {self.telegram_username}, group: {self.group}, real_name: {self.real_name})'
+        return f'Student(ID: {self.id}, group: {self.group}, real_name: {self.real_name})'
     
 
 class TelegramMessage(models.Model):
@@ -56,11 +52,13 @@ class TelegramMessage(models.Model):
     text = models.TextField(
         null=False,
         verbose_name='Message text',
+        max_length=4096
     )
     
     answer = models.TextField(
         null=True,
-        verbose_name='Question answer'
+        verbose_name='Question answer',
+        max_length=4096
     )
     
     image_ids = models.JSONField(
@@ -117,7 +115,8 @@ class TelegramPoll(models.Model):
     
     question = models.TextField(
         null=False,
-        verbose_name='Poll question'
+        verbose_name='Poll question',
+        max_length=300
     )
     
     created_at = models.DateTimeField(

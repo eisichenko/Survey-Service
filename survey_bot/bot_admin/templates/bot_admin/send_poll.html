@@ -6,5 +6,95 @@ Send Poll
 
 {% block content %}
     <h1 class="header">Send Poll</h1>
+    
+    {% if server_message != None %}
+        <h2 class="server-message">
+            {{ server_message }}
+        </h2>
+    {% endif %}
 
+    <form  action="{% url 'send_poll' %}" method="post">
+        {% csrf_token %}
+        <div style="text-align: center; margin-bottom: 40px;">
+            {{ form.question }}
+            {{ form.question.errors }}
+        </div>
+
+        <h3 class="header">Open period (leave empty if not required):</h3>
+
+        <div style="text-align: center; margin-bottom: 10px;">
+            {{ form.open_period }}
+            {{ form.open_period.errors }}
+        </div>
+
+        <h3 class="header">Options:</h3>
+        
+        <div style="text-align: center; margin-bottom: 10px;">
+            {{ form.option0 }}
+            {{ form.option0.errors }}
+            <label class="checkbox-correct-label" for="{{ form.is_correct_0.id_for_label }}">is correct 0</label>
+            {{ form.is_correct_0 }}
+            {{ form.is_correct_0.errors }}
+        </div>
+        <div style="text-align: center; margin-bottom: 10px;">
+            {{ form.option1 }}
+            <label class="checkbox-correct-label" for="{{ form.is_correct_1.id_for_label }}">is correct 1</label>
+            {{ form.is_correct_1 }}
+        </div>
+        <div style="text-align: center; margin-bottom: 10px;">
+            {{ form.option2 }}
+            <label class="checkbox-correct-label" for="{{ form.is_correct_2.id_for_label }}">is correct 2</label>
+            {{ form.is_correct_2 }}
+        </div>
+        <div style="text-align: center; margin-bottom: 10px;">
+            {{ form.option3 }}
+            <label class="checkbox-correct-label" for="{{ form.is_correct_3.id_for_label }}">is correct 3</label>
+            {{ form.is_correct_3 }}
+        </div>
+        <div style="text-align: center; margin-bottom: 10px;">
+            {{ form.option4 }}
+            <label class="checkbox-correct-label" for="{{ form.is_correct_4.id_for_label }}">is correct 4</label>
+            {{ form.is_correct_4 }}
+        </div>
+        <div style="text-align: center; margin-bottom: 10px;">
+            {{ form.option5 }}
+            <label class="checkbox-correct-label" for="{{ form.is_correct_5.id_for_label }}">is correct 5</label>
+            {{ form.is_correct_5 }}
+        </div>
+        <div style="text-align: center; margin-bottom: 10px;">
+            {{ form.option6 }}
+            <label class="checkbox-correct-label" for="{{ form.is_correct_6.id_for_label }}">is correct 6</label>
+            {{ form.is_correct_6 }}
+        </div>
+        <div style="text-align: center; margin-bottom: 10px;">
+            {{ form.option7 }}
+            <label class="checkbox-correct-label" for="{{ form.is_correct_7.id_for_label }}">is correct 7</label>
+            {{ form.is_correct_7 }}
+        </div>
+        <div style="text-align: center; margin-bottom: 10px;">
+            {{ form.option8 }}
+            <label class="checkbox-correct-label" for="{{ form.is_correct_8.id_for_label }}">is correct 8</label>
+            {{ form.is_correct_8 }}
+        </div>
+        <div style="text-align: center; margin-bottom: 40px;">
+            {{ form.option9 }}
+            <label class="checkbox-correct-label" for="{{ form.is_correct_9.id_for_label }}">is correct 9</label>
+            {{ form.is_correct_9 }}
+        </div>
+
+        
+        <h3 class="header">Leave selects blank to send to 
+            <span style="text-decoration: underline;">ALL</span> 
+            students
+        </h3>
+        <div style="text-align: center; margin-bottom: 40px;">
+            {{ form.group }}
+            {{ form.group.errors }}
+            {{ form.student }}
+            {{ form.student.errors }}
+        </div>
+        <div class="form-buttons">
+            <input class="green-button" onclick="return confirm('Are you sure?')" type="submit" value="Send to students"/>
+        </div>
+    </form>
 {% endblock %}

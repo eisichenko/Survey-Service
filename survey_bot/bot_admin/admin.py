@@ -5,8 +5,7 @@ from .models import *
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('id', 
-                    'telegram_id', 
-                    'telegram_username', 
+                    'telegram_id',
                     'telegram_chat_id',
                     'real_name',
                     'group')

@@ -6,5 +6,30 @@ Send Question
 
 {% block content %}
     <h1 class="header">Send Question</h1>
+    {% if server_message != None %}
+        <h2 class="server-message">
+            {{ server_message }}
+        </h2>
+    {% endif %}
 
+    <form  action="{% url 'send_question' %}" method="post">
+        {% csrf_token %}
+        <div style="text-align: center; margin-bottom: 40px;">
+            {{ form.text }}
+            {{ form.text.errors }}
+        </div>
+        <h3 class="header">Leave selects blank to send to 
+            <span style="text-decoration: underline;">ALL</span> 
+            students
+        </h3>
+        <div style="text-align: center; margin-bottom: 40px;">
+            {{ form.group }}
+            {{ form.group.errors }}
+            {{ form.student }}
+            {{ form.student.errors }}
+        </div>
+        <div class="form-buttons">
+            <input class="green-button" onclick="return confirm('Are you sure?')" type="submit" value="Send to students"/>
+        </div>
+    </form>
 {% endblock %}

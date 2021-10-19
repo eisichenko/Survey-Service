@@ -75,6 +75,11 @@ div.download-div{
     color:rgb(0, 132, 255);
 }
 
+.error-message {
+    text-align: center;
+    color: #f00;
+}
+
 .loading-gif {
     display: block;
     margin-top: 0;
@@ -307,4 +312,51 @@ a.send-message:hover {
     height: 100%;
     width: 100%;
     margin-top: 100px;
+}
+
+.content-choice {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+
+.message-input {
+    resize: none;
+    padding: 10px;
+    border-radius: 12px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.1rem
+}
+
+.select-input {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9rem;
+    padding: 10px;
+    margin-right: 10px;
+}
+
+.errorlist {
+    list-style-type: none;
+    color: #f00;
+}
+
+.option-input {
+    padding: 10px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9rem;
+    width: 400px;
+}
+
+.checkbox-correct-label {
+    display: inline-block;
+    margin-left: 20px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.correct-checkbox {
+    margin: 0;
+    width: 18px !important;
+    height: 18px !important;
+    vertical-align: middle;
 }
