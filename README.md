@@ -8,7 +8,7 @@
 
 3. Install `PostgreSQL` (you can switch to any other database like SQLite easily)
 
-3. Provide following secrets in `.env` file in the root of this project or using `environment variables`. **Keep you bot `token` in secret, as anyone who has it can do anything with your bot.** Example:
+4. Provide following secrets in `.env` file in the root of this project or using `environment variables`. **Keep you bot `token` in secret, as anyone who has it can do anything with your bot.** Example:
 
 ```python
 TOKEN=<your bot token (use @BotFather to get it)>
@@ -19,9 +19,9 @@ DB_HOST=<db host>
 DB_PORT=<db port>
 ```
 
-4. `python3 survey_bot/manage.py start_bot` - to start Telegram bot
+5. `python3 survey_bot/manage.py start_bot` - to start Telegram bot
 
-5. `python3 survey_bot/manage.py runserver` to run website for managing bot surveys (url: http://127.0.0.1:8000/)
+6. `python3 survey_bot/manage.py runserver` to run website for managing bot surveys (url: http://127.0.0.1:8000/)
 
 ### Usage
 
