@@ -473,18 +473,21 @@ def unknown_command(update: Update, context: CallbackContext):
             if answer_text != None and len(answer_text) > 0:
                 msg_text += '\n\n<b><i>Your answer</i></b>:\n\n' + answer_text
             
-            context.bot.edit_message_text(
-                text=msg_text,
-                chat_id=update.message.chat_id,
-                message_id=target_msg_id,
-                parse_mode=ParseMode.HTML
-            )
-            
-            context.bot.edit_message_reply_markup(
-                chat_id=update.message.chat_id,
-                message_id=target_msg_id,
-                reply_markup=answer_edit_markup
-            )
+            try:
+                context.bot.edit_message_reply_markup(
+                    chat_id=update.message.chat_id,
+                    message_id=target_msg_id,
+                    reply_markup=answer_edit_markup
+                )
+                
+                context.bot.edit_message_text(
+                    text=msg_text,
+                    chat_id=update.message.chat_id,
+                    message_id=target_msg_id,
+                    parse_mode=ParseMode.HTML
+                )
+            except:
+                print(f'message {target_msg_id} is too old to edit')
             
             if target_data == ANSWERING_MESSAGE_ID_DATA:
                 update.message.reply_text(text=f'Answer to question "{question_message.text}" was recorded successfully')
@@ -523,18 +526,21 @@ def unknown_command(update: Update, context: CallbackContext):
         if answer_text != None and len(answer_text) > 0:
             msg_text += '\n\n<b><i>Your answer</i></b>:\n\n' + answer_text
         
-        context.bot.edit_message_text(
-            text=msg_text,
-            chat_id=update.message.chat_id,
-            message_id=target_msg_id,
-            parse_mode=ParseMode.HTML
-        )
-        
-        context.bot.edit_message_reply_markup(
-            chat_id=update.message.chat_id,
-            message_id=target_msg_id,
-            reply_markup=answer_edit_markup
-        )
+        try:
+            context.bot.edit_message_reply_markup(
+                chat_id=update.message.chat_id,
+                message_id=target_msg_id,
+                reply_markup=answer_edit_markup
+            )
+            
+            context.bot.edit_message_text(
+                text=msg_text,
+                chat_id=update.message.chat_id,
+                message_id=target_msg_id,
+                parse_mode=ParseMode.HTML
+            )
+        except:
+            print(f'message {target_msg_id} is too old to edit')
         
         if target_data == ANSWERING_MESSAGE_ID_DATA:
             update.message.reply_text(text=f'Answer to question "{question_message.text}" was recorded successfully')

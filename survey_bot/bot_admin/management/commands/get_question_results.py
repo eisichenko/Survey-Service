@@ -6,7 +6,7 @@ from telegram import Bot
 from telegram.utils.request import Request
 
 
-ALL_ANSWERS_DIRECTORY = 'answers ' + datetime.now().strftime('%d.%m.%Y %H:%M:%S')
+ALL_ANSWERS_DIRECTORY = 'answers ' + datetime.now().strftime('%d.%m.%Y %H:%M:%S') + ' (utc)'
 QUESTION_FILENAME = 'question.txt'
 
 
