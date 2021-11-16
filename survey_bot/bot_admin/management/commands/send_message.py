@@ -75,7 +75,7 @@ class Command(BaseCommand):
                 try:
                     bot.send_message(
                         chat_id=student.telegram_chat_id,
-                        text=f'<b><i>Message from the instructor:</i></b>\n\n{msg_text}',
+                        text=f'<b><i>Сообщение от инструктора:</i></b>\n\n{msg_text}',
                         parse_mode=ParseMode.HTML
                     )
                     

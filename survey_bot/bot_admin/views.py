@@ -217,13 +217,13 @@ def send_poll_results(request):
             for student, correct_number in correct_answers.items():
                 student: Student
                 
-                text = f'<b><i>Your result in polls:</i></b>\n\n'
+                text = f'<b><i>Ваши результаты в опросах:</i></b>\n\n'
                 
                 for i in range(len(poll_questions)):
-                    text += f'#{i + 1} Question: "{poll_questions[i]}"\n'
+                    text += f'#{i + 1} Вопрос: "{poll_questions[i]}"\n'
                 
                 text += '\n'
-                text += f'<b><i>Correct answers:</i></b> {correct_number}/{total_questions} ({correct_number / float(total_questions) * 100.0 : .2f}%)\n'
+                text += f'<b><i>Верно:</i></b> {correct_number}/{total_questions} ({correct_number / float(total_questions) * 100.0 : .2f}%)\n'
                 
                 bot.send_message(
                     chat_id=student.telegram_chat_id,
@@ -377,10 +377,10 @@ def close_message_group(request, group_id):
                 question.save()
                 
                 if question.answer != None:
-                    msg_text = ('<b><i>[CLOSED]</i></b>\n\n<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question.text + 
-                        '\n\n<b><i>Your answer</i></b>:\n\n' + question.answer)
+                    msg_text = ('<b><i>[ЗАКРЫТ]</i></b>\n\n<b><i>Вопрос (<u>ОТВЕЧЕНО</u>)</i></b>:\n\n' + question.text + 
+                        '\n\n<b><i>Ваш ответ:</i></b>:\n\n' + question.answer)
                 else:
-                    msg_text = ('<b><i>[CLOSED]</i></b>\n\n<b><i>Question</i></b>:\n\n' + question.text)
+                    msg_text = ('<b><i>[ЗАКРЫТ]</i></b>\n\n<b><i>Вопрос</i></b>:\n\n' + question.text)
 
 
                 bot.edit_message_text(
@@ -491,7 +491,7 @@ def delete_student(request, id):
         
         bot.send_message(
             chat_id=student.telegram_chat_id,
-            text='<b><i>Your account was deleted by instructor</i></b>',
+            text='<b><i>Ваш аккаунт был удален инструктором</i></b>',
             parse_mode=ParseMode.HTML
         )
         
@@ -719,7 +719,7 @@ def send_question(request):
                         try:
                             message: Message = bot.send_message(
                                 chat_id=student.telegram_chat_id,
-                                text=('<b><i>Question</i></b>:\n\n' + question_text),
+                                text=('<b><i>Вопрос</i></b>:\n\n' + question_text),
                                 reply_markup=answer_markup,
                                 parse_mode=ParseMode.HTML
                             )
@@ -804,7 +804,7 @@ def send_message(request):
                         try:
                             bot.send_message(
                                 chat_id=student.telegram_chat_id,
-                                text=f'<b><i>Message from the instructor:</i></b>\n\n{msg_text}',
+                                text=f'<b><i>Сообщение от инструктора:</i></b>\n\n{msg_text}',
                                 parse_mode=ParseMode.HTML
                             )
                         except Exception as e:

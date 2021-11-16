@@ -24,8 +24,8 @@ from .send_question import answer_edit_markup, ANSWER_DATA, EDIT_DATA
 from datetime import datetime
 
 
-EDIT_NAME_KEYBOARD_VALUE = 'Edit name'
-EDIT_GROUP_KEYBOARD_VALUE = 'Edit group'
+EDIT_NAME_KEYBOARD_VALUE = 'Редатировать имя'
+EDIT_GROUP_KEYBOARD_VALUE = 'Редактировать группу'
 CANCEL_KEYBOARD_VALUE = '/cancel'
 
 EDIT_PROFILE_KEYBOARD_VALUE = '/edit_profile'
@@ -33,9 +33,9 @@ SHOW_PROFILE_KEYBOARD_VALUE = '/show_profile'
 SIGN_UP_KEYBOARD_VALUE = '/signup'
 HELP_KEYBOARD_VALUE = '/help'
 
-edit_keyboard = [[EDIT_NAME_KEYBOARD_VALUE, 
-                  EDIT_GROUP_KEYBOARD_VALUE, 
-                  CANCEL_KEYBOARD_VALUE]]
+edit_keyboard = [[EDIT_NAME_KEYBOARD_VALUE], 
+                  [EDIT_GROUP_KEYBOARD_VALUE], 
+                  [CANCEL_KEYBOARD_VALUE]]
 edit_markup = ReplyKeyboardMarkup(keyboard=edit_keyboard, 
                                   one_time_keyboard=False, 
                                   resize_keyboard=True)
@@ -68,20 +68,20 @@ GROUP_TARGET_ID_DATA = 'group_target_id'
 @log_errors
 def start(update: Update, context: CallbackContext):
     update.message.reply_text(
-        text=('Welcome to Survey Bot!\n' + 
-              'If don\'t know how to use this bot send /help command.')
+        text=('Добро пожаловать в бот для проведения опросов!\n' + 
+              f'Если не знаете, как пользоваться, введите {HELP_KEYBOARD_VALUE}.')
     )
     
     if (Student.objects.filter(telegram_id=update.effective_user.id).exists()):
         current_student: Student = Student.objects.get(telegram_id=update.effective_user.id)
         update.message.reply_text(
-            text=f'Welcome back, {current_student.real_name}!',
+            text=f'Добро пожаловать, {current_student.real_name}!',
             reply_markup=main_markup
             
         )
     else:
         update.message.reply_text(
-            text='Please, sign up to receive surveys by /signup.\nWe need to get your real name and group.',
+            text=f'У вас нет аккаунта, введите {SIGN_UP_KEYBOARD_VALUE}.',
             reply_markup=main_markup,
         )
         
@@ -90,14 +90,14 @@ def start(update: Update, context: CallbackContext):
 def edit_profile(update: Update, context: CallbackContext):
     if (Student.objects.filter(telegram_id=update.effective_user.id).exists()):
         update.message.reply_text(
-            text='Please choose which option you want to edit',
+            text='Выберите, что редактировать',
             reply_markup=edit_markup
         )
         
         return CHOOSE_OPTION_ACTION
     else:
         update.message.reply_text(
-            text='Student not found. Please sign up by /signup command.',
+            text=f'У вас нет аккаунта, введите {SIGN_UP_KEYBOARD_VALUE}.',
             reply_markup=main_markup
         )
         
@@ -108,7 +108,7 @@ def edit_profile(update: Update, context: CallbackContext):
 def edit_name(update: Update, context: CallbackContext) -> int:
     logging.info(f'{update.effective_user.username} edits name')
     
-    update.message.reply_text('Please send your real name (100 characters limit)')
+    update.message.reply_text('Отправьте ваше имя (максимум 100 символов)')
     
     return GET_TYPED_USERNAME_ACTION
         
@@ -116,7 +116,7 @@ def edit_name(update: Update, context: CallbackContext) -> int:
 @log_errors
 def edit_group(update: Update, context: CallbackContext) -> int:
     logging.info(f'{update.effective_user.username} edits group')
-    update.message.reply_text('Please send your group (100 characters limit)')
+    update.message.reply_text('Отправьте вашу группу (максимум 100 символов)')
     
     return GET_TYPED_GROUP_ACTION
 
@@ -136,7 +136,7 @@ def get_edit_typed_username(update: Update, context: CallbackContext) -> int:
         current_student.save()
         
         update.message.reply_text(
-            text=f'Name was edited successfully\nCurrent name: {current_student.real_name}',
+            text=f'Имя отредактировано успешно\nТеперь вас зовут: {current_student.real_name}',
             reply_markup=main_markup
         )
         
@@ -144,7 +144,7 @@ def get_edit_typed_username(update: Update, context: CallbackContext) -> int:
         
     else:
         update.message.reply_text(
-            text='Invalid name. Try again',
+            text='Неверное имя, попробуйте другое',
             reply_markup=edit_markup
         )    
 
@@ -162,14 +162,14 @@ def get_edit_typed_group(update: Update, context: CallbackContext) -> int:
         current_student.save()
         
         update.message.reply_text(
-            text=f'Group was edited successfully\nCurrent group: {current_student.group}',
+            text=f'Группа была отредактирована успешно\nТеперь вы в группе: {current_student.group}',
             reply_markup=main_markup
         )
         
         return ConversationHandler.END
     else:
         update.message.reply_text(
-            text='Invalid group. Try again.',
+            text='Неверная группа, попробуйте другую',
             reply_markup=edit_markup
         )    
 
@@ -186,19 +186,19 @@ def get_signup_typed_username(update: Update, context: CallbackContext) -> int:
         context.user_data[REAL_NAME_DATA] = res
         
         update.message.reply_text(
-            text='Name was added successfully',
+            text='Имя успешно добавлено',
             reply_markup=main_markup
         )
         
         update.message.reply_text(
-            text='Please send your group (100 characters limit)',
+            text='Теперь отправьте вашу группу (максимум 100 символов)',
             reply_markup=main_markup
         )
         
         return GET_TYPED_GROUP_ACTION
     else:
         update.message.reply_text(
-            text='Invalid name. Try again.',
+            text='Неверное имя, попробуйте другое',
             reply_markup=main_markup
         )
 
@@ -215,7 +215,7 @@ def get_signup_typed_group(update: Update, context: CallbackContext) -> int:
         context.user_data[GROUP_DATA] = res
         
         update.message.reply_text(
-            text='Group was added successfully',
+            text='Группа была добавлена успешно',
             reply_markup=main_markup
         )
         
@@ -230,16 +230,16 @@ def get_signup_typed_group(update: Update, context: CallbackContext) -> int:
         )
         
         update.message.reply_text(
-            text=(f'Sign up was successfull.\nWelcome, {current_student.real_name} (group {current_student.group})!\n' + 
-                  f'You can check your data by /show_profile.\n\n' + 
-                  f'Now instructors can send you polls and questions'),
+            text=(f'Регистрация успешно завершена.\nПривет, {current_student.real_name} из группы {current_student.group}!\n' + 
+                  f'Посмотреть профиль - {SHOW_PROFILE_KEYBOARD_VALUE}.\n\n' + 
+                  f'Теперь инструктор может отправлять вам опросы'),
             reply_markup=main_markup
         )
         
         return ConversationHandler.END
     else:
         update.message.reply_text(
-            text='Invalid group. Try again.',
+            text='Неверная группа, попробуйте другую',
             reply_markup=main_markup
         )
 
@@ -248,7 +248,7 @@ def get_signup_typed_group(update: Update, context: CallbackContext) -> int:
 def sign_up(update: Update, context: CallbackContext):
     if (Student.objects.filter(telegram_id=update.effective_user.id).exists()):
         update.message.reply_text(
-            text='You are already signed up. But you can edit your profile by /edit_profile.',
+            text=f'Вы уже зарегестрированы. Если хотите отредактировать профиль, введите {EDIT_PROFILE_KEYBOARD_VALUE}.',
             reply_markup=main_markup
         )
     else:
@@ -259,7 +259,7 @@ def sign_up(update: Update, context: CallbackContext):
             del context.user_data[GROUP_DATA]
         
         update.message.reply_text(
-            text='You can cancel operation by /cancel command\n\nPlease send your real name (100 characters limit)',
+            text=f'Если хотите отменить, введите {CANCEL_KEYBOARD_VALUE}\n\nОтправьте ваше имя (максимум 100 символов)',
             reply_markup=main_markup
         )
         
@@ -269,7 +269,7 @@ def sign_up(update: Update, context: CallbackContext):
 @log_errors
 def cancel(update: Update, context: CallbackContext):
     update.message.reply_text(
-            text='Operation was canceled',
+            text='Операция отменена',
             reply_markup=main_markup
         )
     return ConversationHandler.END
@@ -277,11 +277,11 @@ def cancel(update: Update, context: CallbackContext):
 
 @log_errors
 def help(update: Update, context: CallbackContext):
-    text = ('• With this bot you can receive surveys and quizes from an instructor\n\n' +
-        '• Edit your profile by /edit_profile\n\n' +
-        '• Show profile by /show_profile\n\n' + 
-        '• Sign up by /signup\n\n' + 
-        '• Cancel operation by /cancel\n\n')
+    text = ('• С помощью этого бота вы можете получать опросы от вашего инструктора\n\n' +
+        f'• Редактировать профиль - {EDIT_PROFILE_KEYBOARD_VALUE}\n\n' +
+        f'• Посмотреть профиль - {SHOW_PROFILE_KEYBOARD_VALUE}\n\n' + 
+        f'• Зарегистрироваться - {SIGN_UP_KEYBOARD_VALUE}\n\n' + 
+        f'• Отмена - {CANCEL_KEYBOARD_VALUE}\n\n')
     
     update.message.reply_text(
         text=text,
@@ -294,8 +294,8 @@ def show_profile_info(update: Update, context: CallbackContext):
     if (Student.objects.filter(telegram_id=update.effective_user.id).exists()):
         current_student: Student = Student.objects.get(telegram_id=update.effective_user.id)
         
-        text = (f'Real name: {current_student.real_name}\n\n' + 
-                f'Group: {current_student.group}\n\n')
+        text = (f'Имя: {current_student.real_name}\n\n' + 
+                f'Группа: {current_student.group}\n\n')
         
         update.message.reply_text(
             text=text,
@@ -303,7 +303,7 @@ def show_profile_info(update: Update, context: CallbackContext):
         )
     else:
         update.message.reply_text(
-            text='Student not found. Please sign up by /signup command.',
+            text=f'У вас нет аккаунта, введите {SIGN_UP_KEYBOARD_VALUE}.',
             reply_markup=main_markup
         )
         
@@ -323,14 +323,14 @@ def receive_poll_answer(update: Update, context: CallbackContext):
     if not Student.objects.filter(telegram_id=update.effective_user.id).exists():
         bot.send_message(
             chat_id=update.poll_answer.user.id,
-            text='Answer was not recorded as you are not found in database. Please signup by /signup commmand.'
+            text=f'Ответ не был записан, потому что у вас нет аккаунта, введите {SIGN_UP_KEYBOARD_VALUE}.'
         )
         return
     
     if not TelegramPoll.objects.filter(telegram_poll_id=update.poll_answer.poll_id).exists():
         bot.send_message(
             chat_id=update.poll_answer.user.id,
-            text='You can\'t answer to this poll, as it is not in database any more.'
+            text='Вы уже не можете отвечать на этот опрос, потому что он удален.'
         )
         return
     
@@ -358,13 +358,13 @@ def receive_answer_operation(update: Update, context: CallbackContext):
     
     if not Student.objects.filter(telegram_id=query.from_user.id).exists():
         query.message.reply_text(
-            text='You are not found in database. Please signup by /signup commmand.'
+            text=f'У вас нет аккаунта, введите {SIGN_UP_KEYBOARD_VALUE}.'
         )
         return
     
     if not TelegramMessage.objects.filter(telegram_message_id=query.message.message_id).exists():
         query.message.reply_text(
-            text='You can\'t answer to this question, as it is not in database any more.'
+            text='Вы не можете отвечать на этот вопрос, потому что он удален.'
         )
         return
     
@@ -381,10 +381,10 @@ def receive_answer_operation(update: Update, context: CallbackContext):
     question: TelegramMessage = TelegramMessage.objects.get(telegram_message_id=query.message.message_id)
     
     query.message.reply_text(
-        text=(f'Please, send your answer to question "{question.text}" by text or image' + 
-                '\n\n• Telegram text message limit - up to 4096 characters' + 
-                '\n\n• Telegram message with images limit - up to 10 images, up to 1024 characters'+ 
-                '\n\n• Send /cancel_question to cancel sending answer')
+        text=(f'Отправьте свой ответ на вопрос "{question.text}" картинками или текстом' + 
+                '\n\n• Ограничение текстового сообщения 4096 символов' + 
+                '\n\n• Сообщение с картинками - до 10 картинок и 1024 символов'+ 
+                '\n\n• Отправьте /cancel_question чтобы отменить отправку')
     )
 
 
@@ -451,7 +451,7 @@ def unknown_command(update: Update, context: CallbackContext):
         if question_message.is_closed:
             if target_data != None:
                 del context.user_data[target_data]
-            update.message.reply_text('Question is closed')
+            update.message.reply_text('Вопрос закрыт')
             return
         
         if is_first_image_in_group:
@@ -465,24 +465,19 @@ def unknown_command(update: Update, context: CallbackContext):
         question_message.save()
         
         if is_first_image_in_group:
-            msg_text = '<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question_message.text
+            msg_text = '<b><i>Вопрос (<u>ОТВЕЧЕНО</u>)</i></b>:\n\n' + question_message.text
             
             if image != None:
-                msg_text += f'\n\n<b><i>Images were attached at {datetime.utcnow().strftime("%d/%m/%y %H:%M:%S")} (UTC)</i></b>'
+                msg_text += f'\n\n<b><i>Картинки прикреплены {datetime.utcnow().strftime("%d/%m/%y %H:%M:%S")} (UTC)</i></b>'
             
             if answer_text != None and len(answer_text) > 0:
-                msg_text += '\n\n<b><i>Your answer</i></b>:\n\n' + answer_text
+                msg_text += '\n\n<b><i>Ваш ответ</i></b>:\n\n' + answer_text
             
             try:
-                context.bot.edit_message_reply_markup(
-                    chat_id=update.message.chat_id,
-                    message_id=target_msg_id,
-                    reply_markup=answer_edit_markup
-                )
-                
                 context.bot.edit_message_text(
                     text=msg_text,
                     chat_id=update.message.chat_id,
+                    reply_markup=answer_edit_markup,
                     message_id=target_msg_id,
                     parse_mode=ParseMode.HTML
                 )
@@ -490,9 +485,9 @@ def unknown_command(update: Update, context: CallbackContext):
                 print(f'message {target_msg_id} is too old to edit')
             
             if target_data == ANSWERING_MESSAGE_ID_DATA:
-                update.message.reply_text(text=f'Answer to question "{question_message.text}" was recorded successfully')
+                update.message.reply_text(text=f'Ответ на вопрос "{question_message.text}" был успешно записан')
             elif target_data == EDITING_ANSWER_MESSAGE_ID_DATA:
-                update.message.reply_text(text=f'Answer to question "{question_message.text}" was edited successfully')
+                update.message.reply_text(text=f'Ответ на вопрос "{question_message.text}" был отредактирован успешно')
             
             del context.user_data[target_data]
     elif target_data != None:
@@ -506,7 +501,7 @@ def unknown_command(update: Update, context: CallbackContext):
         if question_message.is_closed:
             if target_data != None:
                 del context.user_data[target_data]
-            update.message.reply_text('Question is closed')
+            update.message.reply_text('Вопрос закрыт')
             return
         
         question_message.answer = answer_text
@@ -518,38 +513,33 @@ def unknown_command(update: Update, context: CallbackContext):
             
         question_message.save()
         
-        msg_text = '<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question_message.text
+        msg_text = '<b><i>Вопрос (<u>ОТВЕЧЕНО</u>)</i></b>:\n\n' + question_message.text
         
         if image != None:
-            msg_text += f'\n\n<b><i>Image was attached at {datetime.utcnow().strftime("%d/%m/%y %H:%M:%S")} (UTC)</i></b>'
+            msg_text += f'\n\n<b><i>Картинки прикреплены {datetime.utcnow().strftime("%d/%m/%y %H:%M:%S")} (UTC)</i></b>'
         
         if answer_text != None and len(answer_text) > 0:
-            msg_text += '\n\n<b><i>Your answer</i></b>:\n\n' + answer_text
+            msg_text += '\n\n<b><i>Ваш ответ</i></b>:\n\n' + answer_text
         
         try:
-            context.bot.edit_message_reply_markup(
-                chat_id=update.message.chat_id,
-                message_id=target_msg_id,
-                reply_markup=answer_edit_markup
-            )
-            
             context.bot.edit_message_text(
                 text=msg_text,
                 chat_id=update.message.chat_id,
                 message_id=target_msg_id,
+                reply_markup=answer_edit_markup,
                 parse_mode=ParseMode.HTML
             )
         except:
             print(f'message {target_msg_id} is too old to edit')
         
         if target_data == ANSWERING_MESSAGE_ID_DATA:
-            update.message.reply_text(text=f'Answer to question "{question_message.text}" was recorded successfully')
+            update.message.reply_text(text=f'Ответ на вопрос "{question_message.text}" был записан успешно')
         elif target_data == EDITING_ANSWER_MESSAGE_ID_DATA:
-            update.message.reply_text(text=f'Answer to question "{question_message.text}" was edited successfully')
+            update.message.reply_text(text=f'Ответ на вопрос "{question_message.text}" был отредактирован успешно')
         
         del context.user_data[target_data]
     else:
-        update.message.reply_text(text='Unknown command.')
+        update.message.reply_text(text='Непонятная команда :(')
 
 
 class Command(BaseCommand):

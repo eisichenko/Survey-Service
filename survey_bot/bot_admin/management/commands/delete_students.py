@@ -104,7 +104,7 @@ class Command(BaseCommand):
                 try:
                     bot.send_message(
                         chat_id=student.telegram_chat_id,
-                        text='<b><i>Your account was deleted by instructor</i></b>',
+                        text='<b><i>Ваш аккаунт был удален инструктором</i></b>',
                         parse_mode=ParseMode.HTML
                     )
                 except Exception as e:

@@ -46,10 +46,10 @@ class Command(BaseCommand):
                             question.save()
                             
                             if question.answer != None:
-                                msg_text = ('<b><i>[CLOSED]</i></b>\n\n<b><i>Question (<u>ANSWERED</u>)</i></b>:\n\n' + question.text + 
-                                    '\n\n<b><i>Your answer</i></b>:\n\n' + question.answer)
+                                msg_text = ('<b><i>[ЗАКРЫТ]</i></b>\n\n<b><i>Вопрос (<u>ОТВЕЧЕНО</u>)</i></b>:\n\n' + question.text + 
+                                    '\n\n<b><i>Ваш ответ</i></b>:\n\n' + question.answer)
                             else:
-                                msg_text = ('<b><i>[CLOSED]</i></b>\n\n<b><i>Question</i></b>:\n\n' + question.text)
+                                msg_text = ('<b><i>[ЗАКРЫТ]</i></b>\n\n<b><i>Вопрос</i></b>:\n\n' + question.text)
         
 
                             bot.edit_message_text(

@@ -93,7 +93,7 @@ class Command(BaseCommand):
                 try:
                     message: Message = bot.send_message(
                         chat_id=student.telegram_chat_id,
-                        text=('<b><i>Question</i></b>:\n\n' + question_text),
+                        text=('<b><i>Вопрос</i></b>:\n\n' + question_text),
                         reply_markup=answer_markup,
                         parse_mode=ParseMode.HTML
                     )

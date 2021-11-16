@@ -56,13 +56,13 @@ class Command(BaseCommand):
                 print(f'Sending to student Name: {student.real_name}; Group: {student.group}; ' + 
                       f'Correct: {correct_number}/{total_polls} ({correct_number / float(total_polls) * 100.0 :0.2f}%)\n')
                 
-                text = f'<b><i>Your result in polls:</i></b>\n\n'
+                text = f'<b><i>Ваши результаты в опросах:</i></b>\n\n'
                 
                 for i in range(len(poll_questions)):
-                    text += f'#{i + 1} Question: "{poll_questions[i]}"\n'
+                    text += f'#{i + 1} Вопрос: "{poll_questions[i]}"\n'
                 
                 text += '\n'
-                text += f'<b><i>Correct answers:</i></b> {correct_number}/{total_polls} ({correct_number / float(total_polls) * 100.0 :0.2f}%)\n'
+                text += f'<b><i>Верно:</i></b> {correct_number}/{total_polls} ({correct_number / float(total_polls) * 100.0 :0.2f}%)\n'
                 
                 bot.send_message(
                     chat_id=student.telegram_chat_id,

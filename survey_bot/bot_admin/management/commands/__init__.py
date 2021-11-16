@@ -41,7 +41,7 @@ def log_errors(f):
             
             bot.send_message(
                 chat_id=update.message.chat_id,
-                text='Unexpected error :('
+                text='Бот сломался, это печально :('
             )
             
             raise e
